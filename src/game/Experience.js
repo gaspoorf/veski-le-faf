@@ -51,8 +51,7 @@ export class Experience {
         this.scene.add(light);
         
         this.scene.add(this.player);
-        const map = new Map();
-        this.scene.add(map);
+        this.scene.add(this.map);
 
         this.renderer.setAnimationLoop((time) => this.animate(time));
     }
@@ -62,6 +61,7 @@ export class Experience {
         const delta = Math.min(this.timer.getDelta(), 0.1); // évite un gros saut si l'onglet était en pause
 
         this.player.update(delta);
+        this.map.update(delta);
 
         this.controls.update();
         this.renderer.render(this.scene, this.camera);

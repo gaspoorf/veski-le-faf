@@ -3,7 +3,7 @@ import { color } from 'three/tsl'
 import { Input } from './Input.js'
 
 
-const LANES = [-0.5, 0, 0.5]
+const LANES = [-0.2, 0, 0.2]
 
 
 export class Player extends THREE.Group {
@@ -22,7 +22,7 @@ export class Player extends THREE.Group {
         const material = new THREE.MeshStandardNodeMaterial()
         material.colorNode = color('red')
 
-        const capsule = new THREE.Mesh(new THREE.CapsuleGeometry(0.1, 0.2, 8, 16), material)
+        const capsule = new THREE.Mesh(new THREE.CapsuleGeometry(0.05, 0.1, 8, 16), material)
         this.add(capsule)
 
         this.input = new Input()
