@@ -3,6 +3,8 @@ import { color } from 'three/tsl'
 import { Input } from './Input.js'
 import { LANES } from './Config.js'
 
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+
 
 // const LANES = [-0.2, 0, 0.2]
 
@@ -34,11 +36,15 @@ export class Player extends THREE.Group {
     constructor() {
         super()
 
+        this.model = null
+
+        this.loadModel()
+
         const material = new THREE.MeshStandardNodeMaterial()
         material.colorNode = color('green')
 
         this.capsule = new THREE.Mesh(new THREE.CapsuleGeometry(0.05, 0.1, 8, 16), material)
-        this.add(this.capsule)
+        // this.add(this.capsule)
 
         this.gravity = (2 * this.jumpHeight) / (this.timeToApex ** 2)
         this.jumpVelocity = this.gravity * this.timeToApex
@@ -53,6 +59,34 @@ export class Player extends THREE.Group {
         // this.pos1.set(-1, 0, 0)
         // this.pos2.set(0, 0, 0)
         // this.pos3.set(1, 0, 0)
+    }
+
+
+    async loadModel() {
+        const loader = new GLTFLoader()
+        const gltf = await loader.loadAsync('/models/bro.glb')
+        const model = gltf.scene
+
+        const box = new THREE.Box3().setFromObject(model)
+        const size = box.getSize(new THREE.Vector3())
+        this.baseScale = 0.2 / size.y
+        model.scale.setScalar(this.baseScale)
+        model.rotation.set(0, -Math.PI, 0)
+
+        box.setFromObject(model)
+        
+        const center = box.getCenter(new THREE.Vector3())
+        model.position.set(-center.x, -box.min.y - 0.1, -center.z)
+
+        //lancer animation
+        const mixer = new THREE.AnimationMixer(model)
+        const action = mixer.clipAction(gltf.animations[0])
+        action.play()
+
+        this.mixer = mixer
+
+        this.model = model
+        this.add(model)
     }
 
 
@@ -77,8 +111,6 @@ export class Player extends THREE.Group {
        
         const targetX = LANES[this.lane]
         this.position.x = THREE.MathUtils.damp(this.position.x, targetX, this.laneSpeed, delta)
-
-
 
        
         
@@ -123,13 +155,17 @@ export class Player extends THREE.Group {
         const stretch = this.isJumping ? Math.abs(this.velocityY) / this.jumpVelocity * 0.25 : 0
         const scaleY = 1 + stretch - this.landSquash * 0.35
         const scaleXZ = 1 / Math.sqrt(scaleY)
-       
-        this.capsule.scale.set(scaleXZ, scaleY, scaleXZ)
+
+        if (this.model) {
+            const s = this.baseScale
+            this.model.scale.set(scaleXZ * s, scaleY * s, scaleXZ * s)
+        }
     }
 
 
     update(delta) {
         this.move(delta)
+        this.mixer?.update(delta)
     }
 
 }
