@@ -29,9 +29,13 @@ export class Player extends THREE.Group {
     jumpCutMultiplier = 0.45
     jumpBuffer = 0.12
 
-    // pos1 = new THREE.Vector3();
-    // pos2 = new THREE.Vector3();
-    // pos3 = new THREE.Vector3();
+
+    // animations
+    mixer = null
+    actions = {}
+    currentAction = null
+
+
 
     constructor() {
         super()
@@ -49,6 +53,8 @@ export class Player extends THREE.Group {
         this.gravity = (2 * this.jumpHeight) / (this.timeToApex ** 2)
         this.jumpVelocity = this.gravity * this.timeToApex
 
+        this.airTime = this.timeToApex * (1 + 1 / Math.sqrt(this.fallMultiplier))
+
         this.input = new Input()
         this.laneSpeed = 20
         // this.activePos.set(0, 0, 0)
@@ -64,7 +70,7 @@ export class Player extends THREE.Group {
 
     async loadModel() {
         const loader = new GLTFLoader()
-        const gltf = await loader.loadAsync('/models/bro.glb')
+        const gltf = await loader.loadAsync('/models/man-animated.glb')
         const model = gltf.scene
 
         const box = new THREE.Box3().setFromObject(model)
@@ -79,14 +85,52 @@ export class Player extends THREE.Group {
         model.position.set(-center.x, -box.min.y - 0.1, -center.z)
 
         //lancer animation
-        const mixer = new THREE.AnimationMixer(model)
-        const action = mixer.clipAction(gltf.animations[0])
-        action.play()
+        this.mixer = new THREE.AnimationMixer(model)
+        console.log('Animations :', gltf.animations.map(clip => clip.name))
 
-        this.mixer = mixer
+        const getClip = (name) => {
+            const clip = THREE.AnimationClip.findByName(gltf.animations, name)
+            if (!clip) console.warn(`Animation "${name}" introuvable dans le GLB`)
+            return clip
+        }
+
+        const idleClip = getClip('idle2')
+        const jumpClip= getClip('mixamo.com')
+        const runClip= getClip('mixamo.com.003')
+
+        if (idleClip) this.actions.idle = this.mixer.clipAction(idleClip)
+        if (runClip) this.actions.run = this.mixer.clipAction(runClip)
+
+        if (jumpClip) {
+            const jump = this.mixer.clipAction(jumpClip)
+            jump.setLoop(THREE.LoopOnce)
+            jump.clampWhenFinished = true
+            jump.timeScale = jumpClip.duration / this.airTime
+            this.actions.jump = jump
+        }
+
+        // this.mixer = mixer
 
         this.model = model
         this.add(model)
+
+        this.playAction(this.isJumping ? 'jump' : 'run', 0)
+    }
+
+
+    playAction(name, fade = 0.15) {
+        const next = this.actions[name]
+        if (!next || next === this.currentAction) return
+
+        next.reset().setEffectiveWeight(1).play()
+
+        if (this.currentAction && fade > 0) {
+            next.crossFadeFrom(this.currentAction, fade, false)
+        } else if (this.currentAction) {
+            this.currentAction.stop()
+        }
+
+        this.currentAction = next
     }
 
 
@@ -129,6 +173,7 @@ export class Player extends THREE.Group {
             this.velocityY = this.jumpVelocity
             this.jumpBufferTimer = 0
             this.jumpCut = false
+            this.playAction('jump', 0.08)
         }
 
         if (this.isJumping) {
@@ -147,6 +192,7 @@ export class Player extends THREE.Group {
                 this.landSquash = Math.min(1, -this.velocityY / this.jumpVelocity)
                 this.velocityY = 0
                 this.isJumping = false
+                this.playAction('run', 0.15)
             }
         }
 
