@@ -35,6 +35,11 @@ export class Experience {
     input = new Input();
     map = new Map();
 
+    started = false
+    isGameOver = false
+    hitTime = 0
+    score = 0
+
 
 
     constructor() {
@@ -84,6 +89,13 @@ export class Experience {
 
             this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
             this.renderer.setSize(window.innerWidth, window.innerHeight)
+        })
+
+
+        //restart temp avant ui
+        window.addEventListener('keydown', (e) => {
+            if (e.code === 'KeyJ' && !this.started) this.startGame()
+            if (e.code === 'KeyR' && this.isGameOver) this.restart()
         })
     }
 
@@ -293,6 +305,13 @@ export class Experience {
         caFolder.add(this.params.aberrationBase, 'value', 0, 0.03, 0.0005).name('perm')
         caFolder.add(this.params.aberrationSpeed, 'value', 0, 0.08, 0.001).name('avec la vitesse')
         caFolder.add(this.params.aberrationFalloff, 'value', 0, 4, 0.01).name('bords')
+
+
+        const introFolder = gui.addFolder('intro cam')
+        introFolder.add(rig.menuOffset, 'x', -4, 4, 0.01).name('menu x')
+        introFolder.add(rig.menuOffset, 'y', 0, 3, 0.01).name('menu hauteur')
+        introFolder.add(rig.menuOffset, 'z', 0, 5, 0.01).name('menu distance')
+        introFolder.add(rig, 'introDuration', 0.3, 4, 0.05).name('durée transition')
         
 
     }
@@ -301,11 +320,18 @@ export class Experience {
         this.timer.update(time);
         const delta = Math.min(this.timer.getDelta(), 0.1);
 
-        this.player.update(this.isGameOver ? delta * 0.3 : delta);
-        
-        if (!this.isGameOver) {
-            this.map.update(delta);
+        if (this.started) {
+            this.player.update(this.isGameOver ? delta * 0.3 : delta);
+            if (!this.isGameOver){
+                this.map.update(delta)
+            }
+        } else {
+            this.player.mixer?.update(delta)
         }
+        
+        // if (!this.isGameOver && this.started) {
+        //     this.map.update(delta);
+        // }
        
         this.cameraRig.update(delta, this.map.speed)
 
@@ -318,8 +344,9 @@ export class Experience {
         this.renderPipeline.render();
 
 
+        
         //collision
-        if (!this.isGameOver) {
+        if (this.started && !this.isGameOver) {
             const hit = this.map.obstacles.checkCollision(this.player.position.x, this.map.rotation.x)
             if (hit && !this.player.isJumping) {
                 console.log('perdu')
@@ -330,14 +357,15 @@ export class Experience {
             
                
             }
-        }
+        
+            
+            // colision pieces
+            const collected = this.map.coins.collect(this.player.position.x, this.player.position.y, this.map.rotation.x)
+            if (collected) {
+                this.score = (this.score ?? 0) + collected
+                console.log('Pièces :', this.score)
+            }
 
-
-        // colision pieces
-        const collected = this.map.coins.collect(this.player.position.x, this.player.position.y, this.map.rotation.x)
-        if (collected) {
-            this.score = (this.score ?? 0) + collected
-            console.log('Pièces :', this.score)
         }
 
 
@@ -361,6 +389,25 @@ export class Experience {
         this.cameraRig.punch()
     }
 
+    restart() {
+        this.isGameOver = false
+        this.hitTime = 0
+        this.score = 0
+        this.params.hitFx.value = 0
+        this.params.hitFlash.value = 0
+        this.params.speedLines.value = 0
+
+        this.map.reset()
+        this.player.reset()
+        this.cameraRig.reset()
+    }
+
+
+    startGame() {
+        this.started = true
+        this.restart()
+        this.cameraRig.start()
+    }
 }
 
 const experience = new Experience();

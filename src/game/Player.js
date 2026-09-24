@@ -26,8 +26,8 @@ export class Player extends THREE.Group {
 
     // jump
     jumpHeight = 0.35
-    jumpDuration = 0.75   // temps total en l'air (secondes)
-    jumpHang = 3          // 2 = parabole classique, 3-4 = flottement au sommet
+    jumpDuration = 0.75
+    jumpHang = 3
     jumpBuffer = 0.12
     jumpTime = 0
 
@@ -37,25 +37,7 @@ export class Player extends THREE.Group {
     actions = {}
     currentAction = null
 
-
-    // #simulateAirTime() {
-    //     const dt = 1 / 240
-    //     let v = this.jumpVelocity
-    //     let y = 0
-    //     let t = 0
-
-    //     while (y >= 0 && t < 5) {
-    //         const apex = 1 - THREE.MathUtils.clamp(Math.abs(v) / (this.jumpVelocity * this.apexZone), 0, 1)
-    //         const fallAmount = THREE.MathUtils.clamp(-v / this.jumpVelocity, 0, 1)
-    //         const g = this.gravity * THREE.MathUtils.lerp(1, this.fallMultiplier, fallAmount)
-    //                 * THREE.MathUtils.lerp(1, this.apexGravity, apex)
-    //         v -= g * dt
-    //         y += v * dt
-    //         t += dt
-    //     }
-    //     return t
-    // }
-
+    waiting = true
 
 
     constructor() {
@@ -146,7 +128,8 @@ export class Player extends THREE.Group {
         this.model = model
         this.add(model)
 
-        this.playAction(this.isJumping ? 'jump' : 'run', 0)
+        // this.playAction(this.isJumping ? 'jump' : 'run', 0)
+        this.playAction(this.waiting ? 'idle' : 'run', 0)
     }
 
 
@@ -241,6 +224,33 @@ export class Player extends THREE.Group {
 
     fail() {
         this.playAction('fail', 0.15)
+    }
+
+
+    reset() {
+        this.waiting = false
+        this.lane = 1
+        this.position.set(LANES[this.lane], 0, 0)
+
+        this.isJumping = false
+
+        this.jumpTime = 0
+        this.jumpBufferTimer = 0
+        this.landSquash = 0
+
+        this.prevLeft = !!this.input.left
+        this.prevRight = !!this.input.right
+        this.prevJump = !!this.input.jump
+
+        if (this.model) {
+            this.model.scale.setScalar(this.baseScale)
+        }
+
+        this.mixer?.stopAllAction()
+        this.currentAction = null
+
+        this.playAction('run', 0)
+
     }
 
 

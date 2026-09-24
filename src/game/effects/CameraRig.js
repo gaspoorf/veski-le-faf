@@ -2,6 +2,8 @@ import * as THREE from 'three/webgpu'
 
 const { damp } = THREE.MathUtils
 
+const easeInOutCubic = (t) => (t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2)
+
 
 export class CameraRig {
 
@@ -24,10 +26,7 @@ export class CameraRig {
     // ptit roulis
     rollAmount = 0.5
  
-    #x = 0
-    #lookX = 0
-    #y = 0
-    #target = new THREE.Vector3()
+    
 
 
     //fov
@@ -37,7 +36,7 @@ export class CameraRig {
     maxSpeed = 1.2
     fovSmooth = 3
 
-    #fov = 50
+    
 
 
     //gameover
@@ -46,9 +45,28 @@ export class CameraRig {
     zoomSmooth = 18
     zoomRoll = 0.08
 
+    
+    
+    menuOffset = new THREE.Vector3(1.6, 0.7, 1.8) // caméra sur le côté, plus loin
+    menuTarget = new THREE.Vector3(0, 0.05, 0)    // elle regarde le perso
+    introDuration = 1.6                    
 
+    
+    
+    #x = 0
+    #y = 0
+    #fov = 50
+    #lookX = 0
     #zoom = 0
     #zoomTarget = 0
+    #intro = 0 
+    #introPlaying = false
+
+    #target = new THREE.Vector3()
+    #gamePos = new THREE.Vector3()
+    #gameLook = new THREE.Vector3()
+    
+    
  
 
     constructor(camera, player) {
@@ -72,13 +90,39 @@ export class CameraRig {
         this.#zoom = damp(this.#zoom, this.#zoomTarget, this.zoomSmooth, delta)
 
         this.#y = damp(this.#y, p.y * this.followY, this.jumpSmooth, delta)
+
+
+        this.#gamePos.set(
+            this.offset.x + this.#x,
+            this.offset.y + this.#y,
+            this.offset.z * (1 - this.zoomDistance * this.#zoom)
+        )
+        this.#gameLook.set(
+            this.lookAhead.x + this.#lookX,
+            this.lookAhead.y + this.#y,
+            this.lookAhead.z
+        )
+
+        
+        if (this.#introPlaying) this.#intro = Math.min(this.#intro + delta / this.introDuration, 1)
+        const k = easeInOutCubic(this.#intro)
+        
+        this.camera.position.lerpVectors(this.menuOffset, this.#gamePos, k)
+        this.#target.lerpVectors(this.menuTarget, this.#gameLook, k)
+        this.camera.lookAt(this.#target)
+
+
  
-        this.camera.position.set( this.offset.x + this.#x, this.offset.y + this.#y, this.offset.z * (1 - this.zoomDistance * this.#zoom))
+        // this.camera.position.set( this.offset.x + this.#x, this.offset.y + this.#y, this.offset.z * (1 - this.zoomDistance * this.#zoom))
  
 
-        //lookat
-        this.#target.set( this.lookAhead.x + this.#lookX, this.lookAhead.y + this.#y, this.lookAhead.z)
-        this.camera.lookAt(this.#target)
+        // //lookat
+        // this.#target.set( this.lookAhead.x + this.#lookX, this.lookAhead.y + this.#y, this.lookAhead.z)
+        // this.camera.lookAt(this.#target)
+
+        
+       
+
  
         //roulis
         const lag = p.x * this.followX - this.#x
@@ -103,6 +147,10 @@ export class CameraRig {
             this.camera.updateProjectionMatrix()
         }
 
+    }
+
+    start() {
+        this.#introPlaying = true
     }
 
 
