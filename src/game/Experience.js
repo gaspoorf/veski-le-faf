@@ -1,5 +1,5 @@
 import * as THREE from 'three/webgpu'
-import { color, mix, normalView, time, sin, smoothstep, vec2, vec3, positionWorldDirection, mx_fractal_noise_float, uniform, cos, pass, screenUV, length, float, vec4, mrt, output, sample, saturation, packNormalToRGB, unpackRGBToNormal, atan, floor, fract, abs, hash, screenSize, step  } from 'three/tsl'
+import { color, mix, normalView, time, sin, smoothstep, vec2, vec3, positionWorldDirection, mx_fractal_noise_float, uniform, cos, pass, screenUV, length, float, vec4, mrt, output, sample, saturation, packNormalToRGB, unpackRGBToNormal, atan, floor, fract, abs, hash, screenSize, step, luminance  } from 'three/tsl'
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
 import { Inspector } from 'three/addons/inspector/Inspector.js'
 import { Player } from './Player.js'
@@ -72,6 +72,8 @@ export class Experience {
             aberrationBase: uniform(0.02),
             aberrationSpeed: uniform(0.4),
             aberrationFalloff: uniform(1), 
+            hitFx: uniform(0),
+            hitFlash: uniform(0),
         }
 
         this.cameraRig = new CameraRig(this.camera, this.player)
@@ -158,6 +160,18 @@ export class Experience {
         const vignette = smoothstep(0.85, this.params.vignetteSize, length(screenUV.sub(0.5)))
         col = col.mul(mix(float(1).sub(this.params.vignetteStrength), float(1), vignette))
 
+
+
+        //wasted gameover
+
+        const gray = luminance(col)
+        const wasted = vec3(gray).mul(vec3(1.0, 0.45, 0.4))
+        col = mix(col, wasted, this.params.hitFx)
+        col = col.mul(float(1).sub(this.params.hitFx.mul(0.25)))
+
+        // flash rouge
+        col = mix(col, vec3(1, 0.08, 0.05), this.params.hitFlash.mul(0.55))
+
        
 
 
@@ -190,7 +204,10 @@ export class Experience {
 
 
         //ca pass
-        const caStrength = this.params.aberrationBase.add(this.params.aberrationSpeed.mul(this.params.speedLines))
+        const caStrength = this.params.aberrationBase
+            .add(this.params.aberrationSpeed.mul(this.params.speedLines))
+            .add(this.params.hitFx.mul(0.04))
+            .add(this.params.hitFlash.mul(0.12))
 
         const caPass = chromaticAberration(vec4(col, 1), caStrength, vec2(0.5), this.params.aberrationFalloff)
 
@@ -277,8 +294,12 @@ export class Experience {
         this.timer.update(time);
         const delta = Math.min(this.timer.getDelta(), 0.1);
 
-        this.player.update(delta);
-        this.map.update(delta);
+        this.player.update(this.isGameOver ? delta * 0.3 : delta);
+        
+        if (!this.isGameOver) {
+            this.map.update(delta);
+        }
+       
         this.cameraRig.update(delta, this.map.speed)
 
         const s = THREE.MathUtils.clamp((this.map.speed - 0.5) / 1.0, 0, 1)
@@ -291,13 +312,19 @@ export class Experience {
 
 
         //collision
-        const hit = this.map.obstacles.checkCollision(this.player.position.x, this.map.rotation.x)
-        if (hit && !this.player.isJumping) {
-            console.log('perdu')
-            this.map.speed = 0
+        if (!this.isGameOver) {
+            const hit = this.map.obstacles.checkCollision(this.player.position.x, this.map.rotation.x)
+            if (hit && !this.player.isJumping) {
+                console.log('perdu')
+                this.map.speed = 0
+                this.player.fail()
 
-            this.player.fail()
+                this.gameOver()
+            
+               
+            }
         }
+
 
         // colision pieces
         const collected = this.map.coins.collect(this.player.position.x, this.player.position.y, this.map.rotation.x)
@@ -306,7 +333,25 @@ export class Experience {
             console.log('Pièces :', this.score)
         }
 
+
+        if (this.isGameOver) {
+            console.log('game over')
+            this.hitTime += delta
+            const t = Math.min(this.hitTime / 0.6, 1)
+            this.params.hitFx.value = 1 - (1 - t) ** 3 
+            this.params.hitFlash.value = Math.max(0, 1 - this.hitTime / 0.25)
+        }
+
+
         // console.log(this.player.isJumping)
+    }
+
+
+    gameOver() {
+        this.isGameOver = true
+        this.hitTime = 0
+        this.map.speed = 0
+        this.cameraRig.punch()
     }
 
 }

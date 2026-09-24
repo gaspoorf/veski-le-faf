@@ -31,13 +31,24 @@ export class CameraRig {
 
 
     //fov
-    baseFov = 50        // FOV à vitesse minimale
-    maxFov = 65         // FOV à vitesse maximale
-    minSpeed = 0.3      // vitesse de départ de la map
-    maxSpeed = 1.2      // vitesse à partir de laquelle le FOV est au maximum
-    fovSmooth = 3       // amorti : le FOV "respire" au lieu de sauter
+    baseFov = 50
+    maxFov = 65
+    minSpeed = 0.3
+    maxSpeed = 1.2
+    fovSmooth = 3
 
     #fov = 50
+
+
+    //gameover
+    zoomFov = 18
+    zoomDistance = 0.4
+    zoomSmooth = 18
+    zoomRoll = 0.08
+
+
+    #zoom = 0
+    #zoomTarget = 0
  
 
     constructor(camera, player) {
@@ -58,9 +69,11 @@ export class CameraRig {
         this.#x = damp(this.#x, p.x * this.followX, this.lateralSmooth, delta)
         this.#lookX = damp(this.#lookX, p.x * this.lookFollowX, this.lookSmooth, delta)
 
+        this.#zoom = damp(this.#zoom, this.#zoomTarget, this.zoomSmooth, delta)
+
         this.#y = damp(this.#y, p.y * this.followY, this.jumpSmooth, delta)
  
-        this.camera.position.set( this.offset.x + this.#x, this.offset.y + this.#y, this.offset.z )
+        this.camera.position.set( this.offset.x + this.#x, this.offset.y + this.#y, this.offset.z * (1 - this.zoomDistance * this.#zoom))
  
 
         //lookat
@@ -71,6 +84,9 @@ export class CameraRig {
         const lag = p.x * this.followX - this.#x
         this.camera.rotateZ(-lag * this.rollAmount)
 
+        //gameover
+        this.camera.rotateZ(this.zoomRoll * this.#zoom)
+
 
         //fov speed
         const t = THREE.MathUtils.clamp((speed - this.minSpeed) / (this.maxSpeed - this.minSpeed), 0, 1)
@@ -79,13 +95,23 @@ export class CameraRig {
 
         this.#fov = damp(this.#fov, targetFov, this.fovSmooth, delta)
 
+        const finalFov = this.#fov - this.zoomFov * this.#zoom
 
-        if (Math.abs(this.camera.fov - this.#fov) > 0.01) {
+
+        if (Math.abs(this.camera.fov - finalFov) > 0.01) {
             this.camera.fov = this.#fov
             this.camera.updateProjectionMatrix()
         }
 
     }
 
+
+    punch() {
+        this.#zoomTarget = 0.6
+    }
+
+    reset() { 
+        this.#zoomTarget = 0 
+    }
 
 }
