@@ -27,14 +27,6 @@ export class Map extends THREE.Group {
         const baseColor = mix(green, color('#2d8a1f'), tufts.mul(0.6))
 
 
-
-
-        // const loader = new THREE.TextureLoader()
-        // const map = loader.load('/textures/ground.jpg')
-        // map.colorSpace = THREE.SRGBColorSpace 
-        // map.wrapS = THREE.RepeatWrapping 
-        // map.wrapT = THREE.RepeatWrapping
-
         const material = new THREE.MeshStandardNodeMaterial()
         material.colorNode = baseColor
         material.roughnessNode = float(0.85)
@@ -53,6 +45,7 @@ export class Map extends THREE.Group {
         material.emissiveNode = color('#b6f59a').mul(fresnel).mul(0.4)
 
         const sphere = new THREE.Mesh(new THREE.SphereGeometry(this.radius, 128, 128), material)
+        sphere.receiveShadow = true
         this.add(sphere)
 
 

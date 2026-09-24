@@ -31,6 +31,11 @@ export class Experience {
         // this.renderer = renderer;
         this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
         this.renderer.setSize(window.innerWidth, window.innerHeight);
+        this.renderer.toneMapping = THREE.NeutralToneMapping
+        this.renderer.toneMappingExposure = 1.1
+        this.renderer.shadowMap.enabled = true
+        this.renderer.shadowMap.type = THREE.VSMShadowMap
+
         this.renderer.inspector = new Inspector();
         document.body.appendChild(this.renderer.domElement);
         
@@ -47,11 +52,27 @@ export class Experience {
 
 
     async init() {
-        this.scene.add(new THREE.AmbientLight(0xffffff, 0.5));
-        const light = new THREE.DirectionalLight(0xffffff, 2);
-        light.position.set(3, 5, 4);
-        this.scene.add(light);
+        // this.scene.add(new THREE.AmbientLight(0xffffff, 0.5));
+        // const light = new THREE.DirectionalLight(0xffffff, 2);
+        // light.position.set(3, 5, 4);
+        // this.scene.add(light);
         
+
+        this.scene.add(new THREE.HemisphereLight('#cfe8ff', '#5fae3a', 1.3))
+
+        const sun = new THREE.DirectionalLight('#fff1d6', 2.5)
+        sun.position.set(2, 4, 3)
+        sun.castShadow = true
+        sun.shadow.mapSize.set(2048, 2048)
+        sun.shadow.camera.left = sun.shadow.camera.bottom = -2.5
+        sun.shadow.camera.right = sun.shadow.camera.top = 2.5
+        sun.shadow.camera.near = 0.5
+        sun.shadow.camera.far = 10
+        sun.shadow.radius = 6
+        sun.shadow.bias = -0.0005
+        this.scene.add(sun)
+
+
         this.scene.add(this.player);
         this.scene.add(this.map);
 

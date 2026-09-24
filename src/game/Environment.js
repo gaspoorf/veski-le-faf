@@ -2,6 +2,9 @@ import * as THREE from 'three/webgpu'
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js'
 import { LANES, WORLD_RADIUS } from './Config.js'
 
+import { toClay } from './Clay.js'
+
+
 // la bande du centre libre
 const LANE_CLEARANCE = Math.max(...LANES.map(Math.abs)) + 0.15
 
@@ -58,11 +61,22 @@ export class Environment extends THREE.Group {
             if (!child.isMesh) return
 
             const geometry = child.geometry.clone().applyMatrix4(child.matrixWorld)
-            const mesh = new THREE.InstancedMesh(geometry, child.material, count)
+            const mesh = new THREE.InstancedMesh(geometry, toClay(child.material), count)
+
+            mesh.castShadow = true
+            // mesh.receiveShadow = true
+
             matrices.forEach((m, i) => mesh.setMatrixAt(i, m))
 
             this.add(mesh)
+
+            
+            
+       
         })
+
+
+        
     }
 
 }

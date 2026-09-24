@@ -5,6 +5,8 @@ import { LANES } from './Config.js'
 
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
+import { clayify } from './Clay.js'
+
 
 // const LANES = [-0.2, 0, 0.2]
 
@@ -72,6 +74,8 @@ export class Player extends THREE.Group {
         const loader = new GLTFLoader()
         const gltf = await loader.loadAsync('/models/man-animated.glb')
         const model = gltf.scene
+
+        clayify(model, { saturationAmount: 1.4, brightness: 1.3 })
 
         const box = new THREE.Box3().setFromObject(model)
         const size = box.getSize(new THREE.Vector3())
