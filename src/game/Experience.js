@@ -77,6 +77,14 @@ export class Experience {
         }
 
         this.cameraRig = new CameraRig(this.camera, this.player)
+
+        window.addEventListener('resize', () => {
+            this.camera.aspect = window.innerWidth / window.innerHeight
+            this.camera.updateProjectionMatrix()
+
+            this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
+            this.renderer.setSize(window.innerWidth, window.innerHeight)
+        })
     }
 
 
@@ -225,7 +233,6 @@ export class Experience {
 
 
         this.renderer.setAnimationLoop((time) => this.animate(time))
-
 
 
     }
