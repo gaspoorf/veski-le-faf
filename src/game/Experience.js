@@ -71,11 +71,12 @@ export class Experience {
 
         //collision
         const hit = this.map.obstacles.checkCollision(this.player.position.x, this.map.rotation.x)
-        if (hit) {
+        if (hit && !this.player.isJumping) {
             console.log('perdu')
             this.map.speed = 0
         }
 
+        console.log(this.player.isJumping)
     }
 
 }
