@@ -56,6 +56,11 @@ export class Experience {
         this.scene.add(this.map);
 
 
+        // fleurs et hebres glb
+        await this.map.environment.addModel('/models/flower.glb', 100, { minScale: 0.01, maxScale: 0.025 })
+        await this.map.environment.addModel('/models/bush.glb', 220, { minScale: 0.005, maxScale: 0.01 })
+
+
         //sky
         const d = positionWorldDirection
         const dir = vec3( d.x,d.y.mul(cos(skyTilt)).sub(d.z.mul(sin(skyTilt))), d.y.mul(sin(skyTilt)).add(d.z.mul(cos(skyTilt))))
