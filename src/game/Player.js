@@ -39,6 +39,7 @@ export class Player extends THREE.Group {
 
     waiting = true
 
+    dead = false
 
     constructor() {
         super()
@@ -119,7 +120,7 @@ export class Player extends THREE.Group {
             const fail = this.mixer.clipAction(failClip)
             fail.setLoop(THREE.LoopOnce)
             fail.clampWhenFinished = true
-            fail.timeScale = failClip.duration / this.jumpDuration
+            fail.timeScale = failClip.duration / 1.5
             this.actions.fail = fail
         }
 
@@ -223,11 +224,18 @@ export class Player extends THREE.Group {
 
 
     fail() {
+        this.dead = true
+        this.isJumping = false
+        this.jumpBufferTimer = 0
+
+        if (this.model) this.model.scale.setScalar(this.baseScale)
+
         this.playAction('fail', 0.15)
     }
 
 
     reset() {
+        this.dead = false
         this.waiting = false
         this.lane = 1
         this.position.set(LANES[this.lane], 0, 0)
@@ -255,7 +263,12 @@ export class Player extends THREE.Group {
 
 
     update(delta) {
-        this.move(delta)
+        if (this.dead) {
+            this.position.y = THREE.MathUtils.damp(this.position.y, 0, 10, delta)
+        } else {
+            this.move(delta)
+        }
+
         this.mixer?.update(delta)
     }
 
