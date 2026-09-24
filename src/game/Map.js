@@ -1,6 +1,7 @@
 import * as THREE from 'three/webgpu'
 import { color, mix, normalView, texture, uv, vec2, time, sin,smoothstep, normalMap, float, positionLocal, mx_fractal_noise_float } from 'three/tsl'
-import { Obstacles } from './Obstacle.js'
+import { Obstacles } from './elements/Obstacle.js'
+import { Coins } from './elements/Coins.js'
 import { WORLD_RADIUS } from './Config.js'
 
 import { Environment } from './Environment.js'
@@ -53,6 +54,10 @@ export class Map extends THREE.Group {
         this.obstacles.rotation.z = Math.PI / 2
         this.add(this.obstacles)
 
+        this.coins = new Coins()
+        this.coins.rotation.z = Math.PI / 2
+        this.add(this.coins)
+
         this.position.set(0, -this.radius - 0.1, 0)
         this.rotation.set(0, 0, -Math.PI / 2)
 
@@ -69,6 +74,7 @@ export class Map extends THREE.Group {
         this.rotation.x += delta * this.speed
 
         this.obstacles.update(this.rotation.x)
+        this.coins.update(this.rotation.x, delta)
     }
 
 }

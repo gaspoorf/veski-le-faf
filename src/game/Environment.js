@@ -2,7 +2,7 @@ import * as THREE from 'three/webgpu'
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js'
 import { LANES, WORLD_RADIUS } from './Config.js'
 
-import { toClay } from './Clay.js'
+import { toClay } from './effects/Clay.js'
 
 
 // la bande du centre libre

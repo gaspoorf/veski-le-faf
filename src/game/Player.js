@@ -5,7 +5,7 @@ import { LANES } from './Config.js'
 
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
-import { clayify } from './Clay.js'
+import { clayify } from './effects/Clay.js'
 
 
 // const LANES = [-0.2, 0, 0.2]
@@ -26,16 +26,35 @@ export class Player extends THREE.Group {
 
     // jump
     jumpHeight = 0.35
-    timeToApex = 0.28
-    fallMultiplier = 1.8
-    jumpCutMultiplier = 0.45
+    jumpDuration = 0.75   // temps total en l'air (secondes)
+    jumpHang = 3          // 2 = parabole classique, 3-4 = flottement au sommet
     jumpBuffer = 0.12
+    jumpTime = 0
 
 
     // animations
     mixer = null
     actions = {}
     currentAction = null
+
+
+    // #simulateAirTime() {
+    //     const dt = 1 / 240
+    //     let v = this.jumpVelocity
+    //     let y = 0
+    //     let t = 0
+
+    //     while (y >= 0 && t < 5) {
+    //         const apex = 1 - THREE.MathUtils.clamp(Math.abs(v) / (this.jumpVelocity * this.apexZone), 0, 1)
+    //         const fallAmount = THREE.MathUtils.clamp(-v / this.jumpVelocity, 0, 1)
+    //         const g = this.gravity * THREE.MathUtils.lerp(1, this.fallMultiplier, fallAmount)
+    //                 * THREE.MathUtils.lerp(1, this.apexGravity, apex)
+    //         v -= g * dt
+    //         y += v * dt
+    //         t += dt
+    //     }
+    //     return t
+    // }
 
 
 
@@ -52,10 +71,10 @@ export class Player extends THREE.Group {
         this.capsule = new THREE.Mesh(new THREE.CapsuleGeometry(0.05, 0.1, 8, 16), material)
         // this.add(this.capsule)
 
-        this.gravity = (2 * this.jumpHeight) / (this.timeToApex ** 2)
-        this.jumpVelocity = this.gravity * this.timeToApex
+        // this.gravity = (2 * this.jumpHeight) / (this.timeToApex ** 2)
+        // this.jumpVelocity = this.gravity * this.timeToApex
 
-        this.airTime = this.timeToApex * (1 + 1 / Math.sqrt(this.fallMultiplier))
+        // this.airTime = this.#simulateAirTime()
 
         this.input = new Input()
         this.laneSpeed = 20
@@ -72,7 +91,7 @@ export class Player extends THREE.Group {
 
     async loadModel() {
         const loader = new GLTFLoader()
-        const gltf = await loader.loadAsync('/models/man-animated.glb')
+        const gltf = await loader.loadAsync('/models/man-animated2.glb')
         const model = gltf.scene
 
         clayify(model, { saturationAmount: 1.4, brightness: 1.3 })
@@ -101,6 +120,7 @@ export class Player extends THREE.Group {
         const idleClip = getClip('idle2')
         const jumpClip= getClip('mixamo.com')
         const runClip= getClip('mixamo.com.003')
+        const failClip= getClip('fail-anim')
 
         if (idleClip) this.actions.idle = this.mixer.clipAction(idleClip)
         if (runClip) this.actions.run = this.mixer.clipAction(runClip)
@@ -109,8 +129,16 @@ export class Player extends THREE.Group {
             const jump = this.mixer.clipAction(jumpClip)
             jump.setLoop(THREE.LoopOnce)
             jump.clampWhenFinished = true
-            jump.timeScale = jumpClip.duration / this.airTime
+            jump.timeScale = jumpClip.duration / this.jumpDuration
             this.actions.jump = jump
+        }
+
+        if (failClip) {
+            const fail = this.mixer.clipAction(failClip)
+            fail.setLoop(THREE.LoopOnce)
+            fail.clampWhenFinished = true
+            fail.timeScale = failClip.duration / this.jumpDuration
+            this.actions.fail = fail
         }
 
         // this.mixer = mixer
@@ -167,42 +195,40 @@ export class Player extends THREE.Group {
 
     jump(delta) {
         const jump = !!this.input.jump
-        const jumpPressed = jump && !this.prevJump
+        const pressed = jump && !this.prevJump
         this.prevJump = jump
 
-        this.jumpBufferTimer = jumpPressed ? this.jumpBuffer : Math.max(0, this.jumpBufferTimer - delta)
+        this.jumpBufferTimer = pressed ? this.jumpBuffer : Math.max(0, this.jumpBufferTimer - delta)
 
         if (this.jumpBufferTimer > 0 && !this.isJumping) {
             this.isJumping = true
-            this.velocityY = this.jumpVelocity
+            this.jumpTime = 0
             this.jumpBufferTimer = 0
-            this.jumpCut = false
             this.playAction('jump', 0.08)
         }
 
+        const prevY = this.position.y
+
         if (this.isJumping) {
+            this.jumpTime += delta
+            const p = Math.min(this.jumpTime / this.jumpDuration, 1)
 
-            if (!jump && this.velocityY > 0 && !this.jumpCut) {
-                this.velocityY *= this.jumpCutMultiplier
-                this.jumpCut = true
-            }
+            this.position.y = this.jumpHeight * (1 - Math.abs(2 * p - 1) ** this.jumpHang)
 
-            const g = this.velocityY < 0 ? this.gravity * this.fallMultiplier : this.gravity
-            this.velocityY -= g * delta
-            this.position.y += this.velocityY * delta
-
-            if (this.position.y <= 0) {
+            if (p >= 1) {
                 this.position.y = 0
-                this.landSquash = Math.min(1, -this.velocityY / this.jumpVelocity)
-                this.velocityY = 0
                 this.isJumping = false
+                this.landSquash = 1
                 this.playAction('run', 0.15)
             }
         }
 
-        // squash et stresqh
+
+        const speedY = delta > 0 ? Math.abs(this.position.y - prevY) / delta : 0
+        const maxSpeedY = (2 * this.jumpHang * this.jumpHeight) / this.jumpDuration
+        const stretch = this.isJumping ? Math.min(speedY / maxSpeedY, 1) * 0.25 : 0
+
         this.landSquash = THREE.MathUtils.damp(this.landSquash, 0, 12, delta)
-        const stretch = this.isJumping ? Math.abs(this.velocityY) / this.jumpVelocity * 0.25 : 0
         const scaleY = 1 + stretch - this.landSquash * 0.35
         const scaleXZ = 1 / Math.sqrt(scaleY)
 
@@ -210,6 +236,11 @@ export class Player extends THREE.Group {
             const s = this.baseScale
             this.model.scale.set(scaleXZ * s, scaleY * s, scaleXZ * s)
         }
+    }
+
+
+    fail() {
+        this.playAction('fail', 0.15)
     }
 
 

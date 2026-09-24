@@ -1,6 +1,6 @@
 import * as THREE from 'three/webgpu'
 import { color, mix, positionLocal, normalView, step, fract, float, texture, positionGeometry, time, mx_noise_float } from 'three/tsl'
-import { LANES, WORLD_RADIUS } from './Config.js'
+import { LANES, WORLD_RADIUS } from '../Config.js'
 
 const TWO_PI = Math.PI * 2
 

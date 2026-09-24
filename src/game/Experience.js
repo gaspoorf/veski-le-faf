@@ -1,5 +1,5 @@
 import * as THREE from 'three/webgpu'
-import { color, mix, normalView, time, sin, smoothstep, vec2, vec3, positionWorldDirection, mx_fractal_noise_float, uniform, cos, pass, screenUV, length, float, vec4, mrt, output, sample, saturation, packNormalToRGB, unpackRGBToNormal  } from 'three/tsl'
+import { color, mix, normalView, time, sin, smoothstep, vec2, vec3, positionWorldDirection, mx_fractal_noise_float, uniform, cos, pass, screenUV, length, float, vec4, mrt, output, sample, saturation, packNormalToRGB, unpackRGBToNormal, atan, floor, fract, abs, hash, screenSize, step  } from 'three/tsl'
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
 import { Inspector } from 'three/addons/inspector/Inspector.js'
 import { Player } from './Player.js'
@@ -16,7 +16,9 @@ import { renderOutput } from 'three/tsl'
 
 import GUI from 'lil-gui'
 
-import { CameraRig } from './CameraRig.js'
+import { CameraRig } from './effects/CameraRig.js'
+
+import { chromaticAberration } from './effects/ChromaticAberrationNode.js'
 
 
 
@@ -67,6 +69,9 @@ export class Experience {
             saturation: uniform(1.25),
             vignetteStrength: uniform(1.0),
             vignetteSize: uniform(0.1),
+            aberrationBase: uniform(0.02),
+            aberrationSpeed: uniform(0.4),
+            aberrationFalloff: uniform(1), 
         }
 
         this.cameraRig = new CameraRig(this.camera, this.player)
@@ -102,6 +107,8 @@ export class Experience {
         // fleurs et hebres glb
         await this.map.environment.addModel('/models/flower.glb', 100, { minScale: 0.01, maxScale: 0.025 })
         await this.map.environment.addModel('/models/bush.glb', 220, { minScale: 0.005, maxScale: 0.01 })
+
+        await this.map.coins.loadModel('/models/coin.glb')
 
 
         //sky
@@ -151,13 +158,53 @@ export class Experience {
         const vignette = smoothstep(0.85, this.params.vignetteSize, length(screenUV.sub(0.5)))
         col = col.mul(mix(float(1).sub(this.params.vignetteStrength), float(1), vignette))
 
+       
+
+
+        // wind lines
+        this.params.speedLines = uniform(0)
+        this.params.linesStrength = uniform(0.6)
+
+        const c = screenUV.sub(0.5).mul(vec2(screenSize.x.div(screenSize.y), 1))
+        const radius = length(c)
+        const angle = atan(c.y, c.x).div(Math.PI * 2).add(0.5)
+
+        const LINE_COUNT = 140
+        const cell = angle.mul(LINE_COUNT)
+        const id = floor(cell)
+        const rnd = hash(id)
+        const rnd2 = hash(id.add(17.3))
+
+        const thin = smoothstep(0.2, 0.5, abs(fract(cell).sub(0.5)).mul(2)).oneMinus()
+
+        const dash = fract(radius.mul(3).sub(time.mul(rnd.mul(2).add(2))).add(rnd2))
+        const streak = smoothstep(0.0, 0.05, dash).mul(smoothstep(0.05, 0.35, dash).oneMinus())
+
+        const active = step(float(1).sub(this.params.speedLines.mul(0.6)), rnd)
+        const edges = smoothstep(0.25, 0.7, radius)
+
+        const lines = thin.mul(streak).mul(active).mul(edges).mul(this.params.speedLines)
+       
+        col = mix(col, vec3(1), lines.mul(this.params.linesStrength))
+
+
+
+        //ca pass
+        const caStrength = this.params.aberrationBase.add(this.params.aberrationSpeed.mul(this.params.speedLines))
+
+        const caPass = chromaticAberration(vec4(col, 1), caStrength, vec2(0.5), this.params.aberrationFalloff)
+
+
         this.setupGUI(aoPass, bloomPass)
 
 
+
         this.renderPipeline.outputColorTransform = false
-        this.renderPipeline.outputNode = fxaa(renderOutput(vec4(col, 1)))
+        this.renderPipeline.outputNode = fxaa(renderOutput(caPass))
 
         // this.renderPipeline.outputNode = vec4(col, 1)
+
+
 
 
         this.renderer.setAnimationLoop((time) => this.animate(time))
@@ -196,17 +243,34 @@ export class Experience {
 
         const rig = this.cameraRig
         const camFolder = gui.addFolder('Caméra')
-        camFolder.add(rig.offset, 'y', 0, 2, 0.01).name('Hauteur')
-        camFolder.add(rig.offset, 'z', 0.3, 5, 0.01).name('Distance')
-        camFolder.add(rig.lookAhead, 'y', -1, 1, 0.01).name('Visée hauteur')
-        camFolder.add(rig.lookAhead, 'z', -5, 0, 0.01).name('Visée profondeur')
-        camFolder.add(rig, 'followX', 0, 1, 0.01).name('Suivi latéral')
-        camFolder.add(rig, 'lookFollowX', 0, 1.5, 0.01).name('Rotation vers la voie')
-        camFolder.add(rig, 'followY', 0, 1, 0.01).name('Suivi du saut')
-        camFolder.add(rig, 'lateralSmooth', 1, 20, 0.1).name('Amorti latéral')
-        camFolder.add(rig, 'jumpSmooth', 1, 20, 0.1).name('Amorti saut')
-        camFolder.add(rig, 'rollAmount', 0, 2, 0.01).name('Roulis')
+        camFolder.add(rig.offset, 'y', 0, 2, 0.01).name('hauteur')
+        camFolder.add(rig.offset, 'z', 0.3, 5, 0.01).name('distance')
+        camFolder.add(rig.lookAhead, 'y', -1, 1, 0.01).name('cible hauteur')
+        camFolder.add(rig.lookAhead, 'z', -5, 0, 0.01).name('cible prof')
+        camFolder.add(rig, 'followX', 0, 1, 0.01).name('suivi lat')
+        camFolder.add(rig, 'lookFollowX', 0, 1.5, 0.01).name('rotation')
+        camFolder.add(rig, 'followY', 0, 1, 0.01).name('suivi du saut')
+        camFolder.add(rig, 'lateralSmooth', 1, 20, 0.1).name('amorti lat')
+        camFolder.add(rig, 'jumpSmooth', 1, 20, 0.1).name('amorti saut')
+        camFolder.add(rig, 'rollAmount', 0, 2, 0.01).name('roulis')
+
+        camFolder.add(rig, 'baseFov', 30, 80, 0.5).name('fov base')
+        camFolder.add(rig, 'maxFov', 30, 100, 0.5).name('fov max')
+        camFolder.add(rig, 'maxSpeed', 0.4, 3, 0.05).name('vitess fov max')
+        camFolder.add(rig, 'fovSmooth', 0.5, 10, 0.1).name('amorti fov')
+
+
+        const linesFolder = gui.addFolder('vent vitesse')
+        linesFolder.add(this.params.linesStrength, 'value', 0, 1, 0.01).name('opacite')
+
+
+
+        const caFolder = gui.addFolder('ca')
+        caFolder.add(this.params.aberrationBase, 'value', 0, 0.03, 0.0005).name('perm')
+        caFolder.add(this.params.aberrationSpeed, 'value', 0, 0.08, 0.001).name('avec la vitesse')
+        caFolder.add(this.params.aberrationFalloff, 'value', 0, 4, 0.01).name('bords')
         
+
     }
 
     animate(time) {
@@ -215,9 +279,13 @@ export class Experience {
 
         this.player.update(delta);
         this.map.update(delta);
-        this.cameraRig.update(delta)
+        this.cameraRig.update(delta, this.map.speed)
 
-        this.controls.update();
+        const s = THREE.MathUtils.clamp((this.map.speed - 0.5) / 1.0, 0, 1)
+        this.params.speedLines.value = THREE.MathUtils.damp(this.params.speedLines.value, s, 3, delta)
+
+        
+        // this.controls.update();
         // this.renderer.render(this.scene, this.camera);
         this.renderPipeline.render();
 
@@ -227,6 +295,15 @@ export class Experience {
         if (hit && !this.player.isJumping) {
             console.log('perdu')
             this.map.speed = 0
+
+            this.player.fail()
+        }
+
+        // colision pieces
+        const collected = this.map.coins.collect(this.player.position.x, this.player.position.y, this.map.rotation.x)
+        if (collected) {
+            this.score = (this.score ?? 0) + collected
+            console.log('Pièces :', this.score)
         }
 
         // console.log(this.player.isJumping)
