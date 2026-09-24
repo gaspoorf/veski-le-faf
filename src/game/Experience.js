@@ -1,5 +1,5 @@
 import * as THREE from 'three/webgpu'
-import { color, mix, normalView, time, sin } from 'three/tsl'
+import { color, mix, normalView, time, sin, smoothstep, vec2, vec3, positionWorldDirection, mx_fractal_noise_float, uniform, cos } from 'three/tsl'
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
 import { Inspector } from 'three/addons/inspector/Inspector.js'
 import { Player } from './Player.js'
@@ -8,7 +8,7 @@ import { Input } from './Input.js'
 
 
 
-
+const skyTilt = uniform(0.5)
 
 
 export class Experience {
@@ -54,6 +54,19 @@ export class Experience {
         
         this.scene.add(this.player);
         this.scene.add(this.map);
+
+
+        //sky
+        const d = positionWorldDirection
+        const dir = vec3( d.x,d.y.mul(cos(skyTilt)).sub(d.z.mul(sin(skyTilt))), d.y.mul(sin(skyTilt)).add(d.z.mul(cos(skyTilt))))
+        const sky = mix(color('#bfe3ff'), color('#2f7fe0'), smoothstep(-0.1, 0.6, dir.y))
+
+        // Nuages
+        const cloudUv = dir.xz.div(dir.y.max(0.05)).mul(0.6).add(vec2(0, time.mul(0.03)))
+        const noise = mx_fractal_noise_float(vec3(cloudUv, time.mul(0.02)), 4, 2.0, 0.5)
+        const clouds = smoothstep(0.05, 0.45, noise).mul(smoothstep(0.0, 0.25, dir.y))
+
+        this.scene.backgroundNode = mix(sky, color('#ffffff'), clouds.mul(0.9))
 
         this.renderer.setAnimationLoop((time) => this.animate(time));
     }

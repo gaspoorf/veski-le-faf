@@ -1,5 +1,5 @@
 import * as THREE from 'three/webgpu'
-import { color, mix, positionLocal, normalView, step, fract, float } from 'three/tsl'
+import { color, mix, positionLocal, normalView, step, fract, float, texture, positionGeometry, time, mx_noise_float } from 'three/tsl'
 import { LANES, WORLD_RADIUS } from './Config.js'
 
 const TWO_PI = Math.PI * 2
@@ -10,6 +10,12 @@ const DESPAWN_ANGLE = 0.6 * Math.PI
 const HIT_ANGLE = 0.1
 const HIT_LANE_DISTANCE = 0.15
 
+const HEAD_SIZE = 0.18
+
+const HEAD_NAMES = ['perso1']
+
+
+
 
 function wrapAngle(a) {
     a = (a + Math.PI) % TWO_PI
@@ -17,13 +23,52 @@ function wrapAngle(a) {
     return a - Math.PI
 }
 
-function createObstacleMaterial() {
+
+//textures têtes
+const loader = new THREE.TextureLoader()
+
+function loadTex(url) {
+    const t = loader.load(url)
+    t.colorSpace = THREE.SRGBColorSpace
+    return t
+}
+
+
+function createFaceMaterial(map, wobble) {
     const material = new THREE.MeshStandardNodeMaterial()
-
-    material.colorNode = color('red')
-
+    material.colorNode = map ? texture(map) : color(0xe0ac8a)
+    material.positionNode = wobble
     return material
 }
+
+
+function createHeadMaterials(name, seed) {
+    
+    const noise = mx_noise_float(positionGeometry.mul(8).add(time.mul(0.5)).add(seed))
+    const wobble = positionGeometry.add(positionGeometry.normalize().mul(noise.mul(HEAD_SIZE * 0.12)))
+ 
+    const face = (side) => createFaceMaterial(loadTex(`/textures/heads/jordan/${name}_${side}.jpg`), wobble)
+ 
+    return [
+        face('right'),
+        face('left'),
+        face('top'),
+        createFaceMaterial(null, wobble),
+        face('front'),
+        face('back'),
+    ]
+}
+
+
+
+
+// function createObstacleMaterial() {
+//     const material = new THREE.MeshStandardNodeMaterial()
+
+//     material.colorNode = color('red')
+
+//     return material
+// }
 
 export class Obstacles extends THREE.Group {
 
@@ -33,17 +78,20 @@ export class Obstacles extends THREE.Group {
     #active = []
     #lastRotation = 0
     #sinceLastRow = 0
+    #heads = []
 
     constructor(poolSize = 24) {
         super()
 
         // obstacle 
-        const geometry = new THREE.BoxGeometry(0.16, 0.2, 0.12)
-        geometry.translate(0, 0, 0)
-        const material = createObstacleMaterial()
+        this.#heads = HEAD_NAMES.map((name, i) => createHeadMaterials(name, i * 17.3))
+
+        const geometry = new THREE.BoxGeometry(HEAD_SIZE, HEAD_SIZE, HEAD_SIZE, 12, 12, 12)
+        // geometry.translate(0, 0, 0)
+        // const material = createObstacleMaterial()
 
         for (let i = 0; i < poolSize; i++) {
-            const mesh = new THREE.Mesh(geometry, material)
+            const mesh = new THREE.Mesh(geometry, this.#heads[0])
             mesh.visible = false
             mesh.userData = { lane: 0, angle: 0 }
             this.add(mesh)
@@ -119,7 +167,7 @@ export class Obstacles extends THREE.Group {
 
         const r = Math.sqrt(WORLD_RADIUS * WORLD_RADIUS - x * x)
 
-        mesh.position.set(x, Math.cos(angle) * r, Math.sin(angle) * r)
+        mesh.position.set(x, Math.cos(angle) * (r + HEAD_SIZE / 2), Math.sin(angle) * r)
         mesh.rotation.set(angle, 0, 0)
         mesh.userData.lane = lane
         mesh.userData.angle = angle
