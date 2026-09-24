@@ -16,6 +16,8 @@ import { renderOutput } from 'three/tsl'
 
 import GUI from 'lil-gui'
 
+import { CameraRig } from './CameraRig.js'
+
 
 
 const skyTilt = uniform(0.5)
@@ -66,6 +68,8 @@ export class Experience {
             vignetteStrength: uniform(1.0),
             vignetteSize: uniform(0.1),
         }
+
+        this.cameraRig = new CameraRig(this.camera, this.player)
     }
 
 
@@ -188,6 +192,20 @@ export class Experience {
 
         const skyFolder = gui.addFolder('sky')
         skyFolder.add(skyTilt, 'value', -1, 1, 0.01).name('inclinaison')
+
+
+        const rig = this.cameraRig
+        const camFolder = gui.addFolder('Caméra')
+        camFolder.add(rig.offset, 'y', 0, 2, 0.01).name('Hauteur')
+        camFolder.add(rig.offset, 'z', 0.3, 5, 0.01).name('Distance')
+        camFolder.add(rig.lookAhead, 'y', -1, 1, 0.01).name('Visée hauteur')
+        camFolder.add(rig.lookAhead, 'z', -5, 0, 0.01).name('Visée profondeur')
+        camFolder.add(rig, 'followX', 0, 1, 0.01).name('Suivi latéral')
+        camFolder.add(rig, 'lookFollowX', 0, 1.5, 0.01).name('Rotation vers la voie')
+        camFolder.add(rig, 'followY', 0, 1, 0.01).name('Suivi du saut')
+        camFolder.add(rig, 'lateralSmooth', 1, 20, 0.1).name('Amorti latéral')
+        camFolder.add(rig, 'jumpSmooth', 1, 20, 0.1).name('Amorti saut')
+        camFolder.add(rig, 'rollAmount', 0, 2, 0.01).name('Roulis')
         
     }
 
@@ -197,6 +215,7 @@ export class Experience {
 
         this.player.update(delta);
         this.map.update(delta);
+        this.cameraRig.update(delta)
 
         this.controls.update();
         // this.renderer.render(this.scene, this.camera);
