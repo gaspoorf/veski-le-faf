@@ -1,10 +1,20 @@
 import * as THREE from 'three/webgpu'
-import { color, mix, normalView, time, sin, smoothstep, vec2, vec3, positionWorldDirection, mx_fractal_noise_float, uniform, cos } from 'three/tsl'
+import { color, mix, normalView, time, sin, smoothstep, vec2, vec3, positionWorldDirection, mx_fractal_noise_float, uniform, cos, pass, screenUV, length, float, vec4, mrt, output, sample, saturation, packNormalToRGB, unpackRGBToNormal  } from 'three/tsl'
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
 import { Inspector } from 'three/addons/inspector/Inspector.js'
 import { Player } from './Player.js'
 import { Map } from './Map.js'
 import { Input } from './Input.js'
+
+import { bloom } from 'three/addons/tsl/display/BloomNode.js'
+import { ao } from 'three/addons/tsl/display/GTAONode.js'
+
+
+import { fxaa } from 'three/addons/tsl/display/FXAANode.js'
+import { renderOutput } from 'three/tsl'
+
+
+import GUI from 'lil-gui'
 
 
 
@@ -48,6 +58,14 @@ export class Experience {
 
         this.player = new Player();
         this.input = new Input();
+
+
+        this.params = {
+            aoIntensity: uniform(0.9),
+            saturation: uniform(1.25),
+            vignetteStrength: uniform(1.0),
+            vignetteSize: uniform(0.1),
+        }
     }
 
 
@@ -94,7 +112,83 @@ export class Experience {
 
         this.scene.backgroundNode = mix(sky, color('#ffffff'), clouds.mul(0.9))
 
-        this.renderer.setAnimationLoop((time) => this.animate(time));
+       
+
+
+        // post pro
+
+        this.renderPipeline = new THREE.RenderPipeline(this.renderer)
+
+        const scenePass = pass(this.scene, this.camera, { samples: 0 })
+        
+        scenePass.setMRT(mrt({ output, normal: packNormalToRGB(normalView) }))
+
+        const sceneColor = scenePass.getTextureNode('output')
+        const sceneDepth = scenePass.getTextureNode('depth')
+        const normalTex = scenePass.getTextureNode('normal')
+
+        const sceneNormal = sample((uv) => unpackRGBToNormal(normalTex.sample(uv)))
+
+
+
+        const aoPass = ao(sceneDepth, sceneNormal, this.camera)
+        aoPass.resolutionScale = 0.5
+        const aoValue = aoPass.getTextureNode().r
+
+        let col = sceneColor.rgb.mul(mix(float(1), aoValue, this.params.aoIntensity))
+
+
+        const bloomPass = bloom(sceneColor, 0.5, 0.5, 0.7)
+        col = col.add(bloomPass.rgb)
+
+        col = saturation(col, this.params.saturation)
+
+
+        const vignette = smoothstep(0.85, this.params.vignetteSize, length(screenUV.sub(0.5)))
+        col = col.mul(mix(float(1).sub(this.params.vignetteStrength), float(1), vignette))
+
+        this.setupGUI(aoPass, bloomPass)
+
+
+        this.renderPipeline.outputColorTransform = false
+        this.renderPipeline.outputNode = fxaa(renderOutput(vec4(col, 1)))
+
+        // this.renderPipeline.outputNode = vec4(col, 1)
+
+
+        this.renderer.setAnimationLoop((time) => this.animate(time))
+
+
+
+    }
+
+
+
+    setupGUI(aoPass, bloomPass) {
+        const gui = new GUI({ title: 'Réglages' })
+
+        const aoFolder = gui.addFolder('ao')
+        aoFolder.add(this.params.aoIntensity, 'value', 0, 1, 0.01).name('force')
+        aoFolder.add(aoPass.radius, 'value', 0.01, 1, 0.01).name('Rayon')
+        aoFolder.add(aoPass.thickness, 'value', 0.01, 2, 0.01).name('Épaisseur')
+
+        const bloomFolder = gui.addFolder('bloom')
+        bloomFolder.add(bloomPass.strength, 'value', 0, 3, 0.01).name('force')
+        bloomFolder.add(bloomPass.radius, 'value', 0, 1, 0.01).name('Rayon')
+        bloomFolder.add(bloomPass.threshold, 'value', 0, 1, 0.01).name('Seuil')
+
+        const colorFolder = gui.addFolder('couleurs')
+        colorFolder.add(this.params.saturation, 'value', 0, 2, 0.01).name('sat')
+        colorFolder.add(this.renderer, 'toneMappingExposure', 0.5, 2, 0.01).name('expo')
+
+        const vignetteFolder = gui.addFolder('vignette')
+        vignetteFolder.add(this.params.vignetteStrength, 'value', 0, 1, 0.01).name('force')
+        vignetteFolder.add(this.params.vignetteSize, 'value', 0, 0.8, 0.01).name('taille')
+
+
+        const skyFolder = gui.addFolder('sky')
+        skyFolder.add(skyTilt, 'value', -1, 1, 0.01).name('inclinaison')
+        
     }
 
     animate(time) {
@@ -105,7 +199,8 @@ export class Experience {
         this.map.update(delta);
 
         this.controls.update();
-        this.renderer.render(this.scene, this.camera);
+        // this.renderer.render(this.scene, this.camera);
+        this.renderPipeline.render();
 
 
         //collision
@@ -115,7 +210,7 @@ export class Experience {
             this.map.speed = 0
         }
 
-        console.log(this.player.isJumping)
+        // console.log(this.player.isJumping)
     }
 
 }
