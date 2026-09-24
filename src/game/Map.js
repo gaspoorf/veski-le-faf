@@ -1,10 +1,17 @@
 import * as THREE from 'three/webgpu'
 import { color, mix, normalView, texture, uv, vec2, time, sin } from 'three/tsl'
+import { Obstacles } from './Obstacle.js'
+import { WORLD_RADIUS } from './Config.js'
+
+
 
 
 export class Map extends THREE.Group {
 
     radius = 2
+
+    radius = WORLD_RADIUS
+    speed = 0.9
 
     constructor() {
         super()
@@ -29,21 +36,19 @@ export class Map extends THREE.Group {
         const sphere = new THREE.Mesh(new THREE.SphereGeometry(this.radius, 128, 128), material)
         this.add(sphere)
 
+
+        this.obstacles = new Obstacles()
+        this.obstacles.rotation.z = Math.PI / 2
+        this.add(this.obstacles)
+
         this.position.set(0, -this.radius - 0.1, 0)
         this.rotation.set(0, 0, -Math.PI / 2)
     }
 
 
-    rotateEarth(delta){
-        // console.log(delta)  
-
-        this.rotation.x += delta * 0.5
-    }
-
-
     update(delta) {
-        this.rotateEarth(delta)
+        this.rotation.x += delta * this.speed
+        this.obstacles.update(this.rotation.x)
     }
-
 
 }

@@ -12,6 +12,10 @@ export class Input {
         window.addEventListener("keyup", (e) => {
             this.keys[e.key.toLowerCase()] = false;
         });
+
+        window.addEventListener("space", (e) => {
+            this.keys[e.key.toLowerCase()] = false;
+        });
     }
 
     // get forward() {

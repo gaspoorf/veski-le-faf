@@ -1,9 +1,10 @@
 import * as THREE from 'three/webgpu'
 import { color } from 'three/tsl'
 import { Input } from './Input.js'
+import { LANES } from './Config.js'
 
 
-const LANES = [-0.2, 0, 0.2]
+// const LANES = [-0.2, 0, 0.2]
 
 
 export class Player extends THREE.Group {
@@ -20,7 +21,7 @@ export class Player extends THREE.Group {
         super()
 
         const material = new THREE.MeshStandardNodeMaterial()
-        material.colorNode = color('red')
+        material.colorNode = color('green')
 
         const capsule = new THREE.Mesh(new THREE.CapsuleGeometry(0.05, 0.1, 8, 16), material)
         this.add(capsule)
@@ -57,8 +58,13 @@ export class Player extends THREE.Group {
         const targetX = LANES[this.lane]
         this.position.x = THREE.MathUtils.damp(this.position.x, targetX, this.laneSpeed, delta)
 
+
+        if (this.input.jump) {
+            console.log("jump")
+        }
         
     }
+
 
     update(delta) {
         this.move(delta)

@@ -9,6 +9,8 @@ import { Input } from './Input.js'
 
 
 
+
+
 export class Experience {
     scene = new THREE.Scene();
     camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 100);
@@ -58,14 +60,24 @@ export class Experience {
 
     animate(time) {
         this.timer.update(time);
-        const delta = Math.min(this.timer.getDelta(), 0.1); // évite un gros saut si l'onglet était en pause
+        const delta = Math.min(this.timer.getDelta(), 0.1);
 
         this.player.update(delta);
         this.map.update(delta);
 
         this.controls.update();
         this.renderer.render(this.scene, this.camera);
+
+
+        //collision
+        const hit = this.map.obstacles.checkCollision(this.player.position.x, this.map.rotation.x)
+        if (hit) {
+            console.log('perdu')
+            this.map.speed = 0
+        }
+
     }
+
 }
 
 const experience = new Experience();
