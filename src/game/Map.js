@@ -11,7 +11,7 @@ export class Map extends THREE.Group {
     radius = 2
 
     radius = WORLD_RADIUS
-    speed = 0.9
+    speed = 0.3
 
     constructor() {
         super()
@@ -47,7 +47,11 @@ export class Map extends THREE.Group {
 
 
     update(delta) {
+
+        this.speed += delta * 0.03
+
         this.rotation.x += delta * this.speed
+
         this.obstacles.update(this.rotation.x)
     }
 
