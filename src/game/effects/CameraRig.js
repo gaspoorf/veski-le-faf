@@ -47,8 +47,8 @@ export class CameraRig {
 
     
     
-    menuOffset = new THREE.Vector3(1.6, 0.7, 1.8) // caméra sur le côté, plus loin
-    menuTarget = new THREE.Vector3(0, 0.05, 0)    // elle regarde le perso
+    menuOffset = new THREE.Vector3(1.6, 0.7, 1.8)
+    menuTarget = new THREE.Vector3(0, 0.05, 0)
     introDuration = 1.6                    
 
     

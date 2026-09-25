@@ -116,7 +116,7 @@ export class Experience {
             // if (!this.started) {
                 console.log('restart')
                 this.restart()
-                reStartBtn.classList.add('hide')
+                // reStartBtn.classList.add('hide')
                 this.gameOverContainer.classList.remove('show')
             // }
         })
@@ -164,6 +164,12 @@ export class Experience {
         await this.map.environment.addModel('/models/bush.glb', 220, { minScale: 0.005, maxScale: 0.01 })
 
         await this.map.coins.loadModel('/models/coin.glb')
+
+        await this.map.obstacles.load([
+            '/models/fafs/marine.glb',
+            '/models/fafs/zemmour.glb',
+            '/models/fafs/trump.glb',
+        ])
 
 
         //sky
@@ -446,6 +452,7 @@ export class Experience {
         this.coinCount = 0
         this.ui.set('score', 0)
         this.ui.set('coins', 0)
+
     }
 
 

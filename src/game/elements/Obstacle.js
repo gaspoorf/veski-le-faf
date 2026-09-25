@@ -1,6 +1,10 @@
 import * as THREE from 'three/webgpu'
 import { color, mix, positionLocal, normalView, step, fract, float, texture, positionGeometry, time, mx_noise_float } from 'three/tsl'
 import { LANES, WORLD_RADIUS } from '../Config.js'
+import { clone as cloneModel } from 'three/addons/utils/SkeletonUtils.js'
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+
+import { clayify} from '../effects/Clay.js'
 
 const TWO_PI = Math.PI * 2
 
@@ -12,7 +16,9 @@ const HIT_LANE_DISTANCE = 0.15
 
 const HEAD_SIZE = 0.18
 
-const HEAD_NAMES = ['perso1']
+const OBSTACLE_HEIGHT = 0.15
+
+// const MODEL_NAMES = ['marine', 'zemmour']
 
 
 
@@ -24,80 +30,80 @@ function wrapAngle(a) {
 }
 
 
-//textures têtes
-const loader = new THREE.TextureLoader()
-
-function loadTex(url) {
-    const t = loader.load(url)
-    t.colorSpace = THREE.SRGBColorSpace
-    return t
-}
-
-
-function createFaceMaterial(map, wobble) {
-    const material = new THREE.MeshStandardNodeMaterial()
-    material.colorNode = map ? texture(map) : color(0xe0ac8a)
-    material.positionNode = wobble
-    return material
-}
-
-
-function createHeadMaterials(name, seed) {
-    
-    const noise = mx_noise_float(positionGeometry.mul(8).add(time.mul(0.5)).add(seed))
-    const wobble = positionGeometry.add(positionGeometry.normalize().mul(noise.mul(HEAD_SIZE * 0.12)))
- 
-    const face = (side) => createFaceMaterial(loadTex(`/textures/heads/jordan/${name}_${side}.jpg`), wobble)
- 
-    return [
-        face('right'),
-        face('left'),
-        face('top'),
-        createFaceMaterial(null, wobble),
-        face('front'),
-        face('back'),
-    ]
-}
-
-
-
-
-// function createObstacleMaterial() {
-//     const material = new THREE.MeshStandardNodeMaterial()
-
-//     material.colorNode = color('red')
-
-//     return material
-// }
 
 export class Obstacles extends THREE.Group {
 
     spacing = 0.9
 
-    #pool = []
+    #pools = []
     #active = []
     #lastRotation = 0
     #sinceLastRow = 0
-    #heads = []
+    // #heads = []
 
-    constructor(poolSize = 24) {
-        super()
 
-        // obstacle 
-        this.#heads = HEAD_NAMES.map((name, i) => createHeadMaterials(name, i * 17.3))
+    
+    async load(urls, poolPerModel = 16) {
+        const loader = new GLTFLoader()
+        const gltfs = await Promise.all(urls.map((url) => loader.loadAsync(url)))
+ 
+        gltfs.forEach((gltf, modelIndex) => {
+            const model = gltf.scene
+            clayify(model, { saturationAmount: 1.4, brightness: 1.3 })
+ 
+            const box = new THREE.Box3().setFromObject(model, true)
+            const size = box.getSize(new THREE.Vector3())
+            model.scale.setScalar(OBSTACLE_HEIGHT / size.y)
+            model.rotation.set(0, -Math.PI / 2, 0)
 
-        const geometry = new THREE.BoxGeometry(HEAD_SIZE, HEAD_SIZE, HEAD_SIZE, 12, 12, 12)
-        // geometry.translate(0, 0, 0)
-        // const material = createObstacleMaterial()
+            
 
-        for (let i = 0; i < poolSize; i++) {
-            const mesh = new THREE.Mesh(geometry, this.#heads[0])
-            mesh.visible = false
-            mesh.userData = { lane: 0, angle: 0 }
-            this.add(mesh)
-            this.#pool.push(mesh)
-        }
+            box.setFromObject(model, true)
+            const center = box.getCenter(new THREE.Vector3())
+            model.position.set(-center.x, -box.min.y, -center.z)
+ 
+
+            const template = new THREE.Group()
+            template.add(model)
+ 
+            const pool = []
+
+            for (let i = 0; i < poolPerModel; i++) {
+
+                const obstacle = cloneModel(template)
+                obstacle.visible = false
+                obstacle.userData = { lane: 0, angle: 0, modelIndex }
+                this.add(obstacle)
+                pool.push(obstacle)
+            }
+
+            this.#pools.push(pool)
+        })
     }
+ 
+
+    
+
+
+
+    // constructor(poolSize = 24) {
+    //     super()
+
+    //     // obstacle 
+    //     this.#heads = HEAD_NAMES.map((name, i) => createHeadMaterials(name, i * 17.3))
+
+    //     const geometry = new THREE.BoxGeometry(HEAD_SIZE, HEAD_SIZE, HEAD_SIZE, 12, 12, 12)
+    //     // geometry.translate(0, 0, 0)
+    //     // const material = createObstacleMaterial()
+
+    //     for (let i = 0; i < poolSize; i++) {
+    //         const mesh = new THREE.Mesh(geometry, this.#heads[0])
+    //         mesh.visible = false
+    //         mesh.userData = { lane: 0, angle: 0 }
+    //         this.add(mesh)
+    //         this.#pool.push(mesh)
+    //     }
+    // }
 
 
 
@@ -138,15 +144,21 @@ export class Obstacles extends THREE.Group {
 
     #spawnRow(rotation) {
 
+        if (this.#pools.length === 0) return
+
 
         const localAngle = SPAWN_ANGLE - rotation
 
+        
         for (const lane of this.#randomPattern()) {
-            const mesh = this.#pool.pop()
-            if (!mesh) return
-            this.#place(mesh, lane, localAngle)
-            this.#active.push(mesh)
+
+            const pool = this.#pools[Math.floor(Math.random() * this.#pools.length)]
+            const obstacle = pool.pop()
+            if (!obstacle) continue
+            this.#place(obstacle, lane, localAngle)
+            this.#active.push(obstacle)
         }
+
     }
 
    
@@ -178,7 +190,7 @@ export class Obstacles extends THREE.Group {
     #release(mesh, index) {
         mesh.visible = false
         this.#active.splice(index, 1)
-        this.#pool.push(mesh)
+        this.#pools[mesh.userData.modelIndex].push(mesh) 
     }
 
 

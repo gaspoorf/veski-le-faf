@@ -3,7 +3,7 @@ body {
   margin: 0;
   height: 100%;
   overflow: hidden;
-  background: #1851ee;
+  background: transparent;
 }
 
 canvas {
@@ -41,13 +41,19 @@ canvas {
   transform: translate(-50%, -50%);
   padding: 1rem 2rem;
   font-size: 24px;
-  background-color: #ee1818;
+  background-color: transparent;
   color: white;
   border: none;
   font-family: Arial, sans-serif;
   text-align: center;
 
   font-size: 128px;
+}
+
+
+#menu img{
+  width: 400px;
+  height: auto;
 }
 
 #start-button {
