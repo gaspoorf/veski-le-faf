@@ -9,3 +9,98 @@ body {
 canvas {
   display: block;
 }
+
+
+
+.score{
+  position: absolute;
+  top: 2rem;
+  right: 2rem;
+  color: white;
+  font-weight: bold;
+  font-family: Arial, sans-serif;
+  font-size: 32px;
+}
+
+.coins{
+  position: absolute;
+  top: 4rem;
+  right: 2rem;
+  color: white;
+  font-weight: bold;
+  font-family: Arial, sans-serif;
+  font-size: 32px;
+}
+
+
+
+#menu {
+  position: absolute;
+  top: 20%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  padding: 1rem 2rem;
+  font-size: 24px;
+  background-color: #ee1818;
+  color: white;
+  border: none;
+  font-family: Arial, sans-serif;
+  text-align: center;
+
+  font-size: 128px;
+}
+
+#start-button {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  padding: 1rem 2rem;
+  font-size: 24px;
+  background-color: #1851ee;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.hide {
+  animation: fadeOut 0.5s forwards;
+  
+}
+
+@keyframes fadeOut {
+  to {
+    opacity: 0;
+    visibility: hidden;
+  }
+}
+
+
+
+
+.game-over-container{
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  padding: 1rem 2rem;
+  font-size: 24px;
+  background-color: #1851ee;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  visibility: hidden;
+  opacity: 0;
+}
+
+.show {
+  animation: fadeIn 0.5s forwards;
+}
+
+@keyframes fadeIn {
+  to {
+    opacity: 1;
+    visibility: visible;
+  }
+}

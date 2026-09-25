@@ -8,7 +8,7 @@ import { Environment } from '../Environment.js'
 
 export class Map extends THREE.Group {
 
-    radius = 2
+    // radius = 2
 
     radius = WORLD_RADIUS
     initialSpeed = 0.3
@@ -63,7 +63,7 @@ export class Map extends THREE.Group {
         this.rotation.set(0, 0, -Math.PI / 2)
 
 
-        this.environment = new Environment({ tuftCount: 400 })
+        this.environment = new Environment()
         this.add(this.environment)
     }
 

@@ -42,6 +42,8 @@ export class Experience {
     distance = 0
     coinCount = 0 
 
+    gameOverContainer = document.querySelector('.game-over-container')
+
 
 
     constructor() {
@@ -91,6 +93,32 @@ export class Experience {
 
             this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
             this.renderer.setSize(window.innerWidth, window.innerHeight)
+        })
+
+
+
+
+        const startBtn = document.querySelector('#start-button')
+        const reStartBtn = document.querySelector('#restart-button')
+        const menu = document.querySelector('#menu')
+
+        startBtn.addEventListener('click', () => {
+            if (!this.started) {
+                this.startGame()
+                startBtn.classList.add('hide')
+                menu.classList.add('hide')
+                this.gameOverContainer.classList.remove('show')
+            }
+        })
+
+        reStartBtn.addEventListener('click', () => {
+            
+            // if (!this.started) {
+                console.log('restart')
+                this.restart()
+                reStartBtn.classList.add('hide')
+                this.gameOverContainer.classList.remove('show')
+            // }
         })
 
 
@@ -398,12 +426,14 @@ export class Experience {
         this.hitTime = 0
         this.map.speed = 0
         this.cameraRig.punch()
+
+        this.gameOverContainer.classList.add('show')
     }
 
     restart() {
         this.isGameOver = false
         this.hitTime = 0
-        this.score = 0
+        // this.score = 0
         this.params.hitFx.value = 0
         this.params.hitFlash.value = 0
         this.params.speedLines.value = 0

@@ -19,8 +19,8 @@ export class Player extends THREE.Group {
 
     isJumping = false
     prevJump = false
-    velocityY = 0
-    jumpCut = false
+    // velocityY = 0
+    // jumpCut = false
     jumpBufferTimer = 0
     landSquash = 0
 
@@ -51,7 +51,7 @@ export class Player extends THREE.Group {
         const material = new THREE.MeshStandardNodeMaterial()
         material.colorNode = color('green')
 
-        this.capsule = new THREE.Mesh(new THREE.CapsuleGeometry(0.05, 0.1, 8, 16), material)
+        // this.capsule = new THREE.Mesh(new THREE.CapsuleGeometry(0.05, 0.1, 8, 16), material)
         // this.add(this.capsule)
 
         // this.gravity = (2 * this.jumpHeight) / (this.timeToApex ** 2)
