@@ -1,11 +1,11 @@
 import * as THREE from 'three/webgpu'
 import { color } from 'three/tsl'
-import { Input } from './Input.js'
-import { LANES } from './Config.js'
+import { Input } from '../Input.js'
+import { LANES } from '../Config.js'
 
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
-import { clayify } from './effects/Clay.js'
+import { clayify } from '../effects/Clay.js'
 
 
 // const LANES = [-0.2, 0, 0.2]

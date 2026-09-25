@@ -1,10 +1,10 @@
 import * as THREE from 'three/webgpu'
 import { color, mix, normalView, texture, uv, vec2, time, sin,smoothstep, normalMap, float, positionLocal, mx_fractal_noise_float } from 'three/tsl'
-import { Obstacles } from './elements/Obstacle.js'
-import { Coins } from './elements/Coins.js'
-import { WORLD_RADIUS } from './Config.js'
+import { Obstacles } from './Obstacle.js'
+import { Coins } from './Coins.js'
+import { WORLD_RADIUS } from '../Config.js'
 
-import { Environment } from './Environment.js'
+import { Environment } from '../Environment.js'
 
 export class Map extends THREE.Group {
 

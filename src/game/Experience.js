@@ -2,8 +2,8 @@ import * as THREE from 'three/webgpu'
 import { color, mix, normalView, time, sin, smoothstep, vec2, vec3, positionWorldDirection, mx_fractal_noise_float, uniform, cos, pass, screenUV, length, float, vec4, mrt, output, sample, saturation, packNormalToRGB, unpackRGBToNormal, atan, floor, fract, abs, hash, screenSize, step, luminance  } from 'three/tsl'
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
 import { Inspector } from 'three/addons/inspector/Inspector.js'
-import { Player } from './Player.js'
-import { Map } from './Map.js'
+import { Player } from './elements/Player.js'
+import { Map } from './elements/Map.js'
 import { Input } from './Input.js'
 
 import { bloom } from 'three/addons/tsl/display/BloomNode.js'
@@ -20,6 +20,7 @@ import { CameraRig } from './effects/CameraRig.js'
 
 import { chromaticAberration } from './effects/ChromaticAberrationNode.js'
 
+import { UI } from './UI/UI.js'
 
 
 const skyTilt = uniform(0.5)
@@ -38,7 +39,8 @@ export class Experience {
     started = false
     isGameOver = false
     hitTime = 0
-    score = 0
+    distance = 0
+    coinCount = 0 
 
 
 
@@ -97,6 +99,9 @@ export class Experience {
             if (e.code === 'KeyJ' && !this.started) this.startGame()
             if (e.code === 'KeyR' && this.isGameOver) this.restart()
         })
+
+        this.ui = new UI()
+        
     }
 
 
@@ -357,13 +362,19 @@ export class Experience {
             
                
             }
+
+
+            //ui score
+            this.distance += this.map.speed * delta * 10
+            this.ui.set('score', Math.floor(this.distance))
         
             
             // colision pieces
             const collected = this.map.coins.collect(this.player.position.x, this.player.position.y, this.map.rotation.x)
             if (collected) {
-                this.score = (this.score ?? 0) + collected
-                console.log('Pièces :', this.score)
+                this.coinCount += collected
+                console.log('Pièces :', this.coinCount)
+                this.ui.set('coins', this.coinCount)
             }
 
         }
@@ -400,6 +411,11 @@ export class Experience {
         this.map.reset()
         this.player.reset()
         this.cameraRig.reset()
+
+        this.distance = 0
+        this.coinCount = 0
+        this.ui.set('score', 0)
+        this.ui.set('coins', 0)
     }
 
 
