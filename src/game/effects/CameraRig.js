@@ -9,7 +9,7 @@ export class CameraRig {
 
 
     //repos
-    offset = new THREE.Vector3(0, 0.35, 1.3)
+    offset = new THREE.Vector3(0, 0.5, 1.3)
     lookAhead = new THREE.Vector3(0, 0.05, -1) 
 
 

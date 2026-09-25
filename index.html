@@ -9,16 +9,46 @@
   <body>
 
     <div id="menu">
-      <img src="/img/logo.png" alt="logo" />
+      <img src="/img/vlf.png" alt="logo" />
     </div>
-    <div>
-      <button id="start-button">Start</button>
+    <div class="button-container-start">
+      <button class="button" id="start-button">LANCER</button>
     </div>
 
 
     <div class="game-over-container">
-      <div id="game-over">Game Over</div>
-      <button id="restart-button">restart</button>
+      <div id="game-over">
+        <img src="/img/lost.svg" alt="game over" />
+
+      </div>
+
+      <div class="score-container">
+
+        <div class="lines-score">
+          AURA
+          <div id="score">
+            <span>0</span>
+            <img class="icon-score" src="/img/score.png" alt="score"/>
+          </div>
+        </div>
+
+        <div class="lines-coins">
+          ANTIFACOINS
+          <div id="coins">
+            <span>0</span>
+            <img class="icon-coin" src="/img/coin.png" alt="coin"/>
+          </div>
+        </div>
+
+      </div>
+
+
+
+
+      <div class="button-container-go">
+        <button id="restart-button" class="button">RELANCER</button>
+        <button id="menu-button" class="button">MENU</button>
+      </div>
     </div>
 
     <script type="module" src="/src/game/Experience.js"></script>

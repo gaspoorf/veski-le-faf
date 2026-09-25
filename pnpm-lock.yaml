@@ -8,6 +8,9 @@ importers:
 
   .:
     dependencies:
+      howler:
+        specifier: ^2.2.4
+        version: 2.2.4
       lil-gui:
         specifier: ^0.21.0
         version: 0.21.0
@@ -140,6 +143,9 @@ packages:
     resolution: {integrity: sha512-5xoDfX+fL7faATnagmWPpbFtwh/R77WmMMqqHGS65C3vvB0YHrgF+B1YmZ3441tMj5n63k0212XNoJwzlhffQw==}
     engines: {node: ^8.16.0 || ^10.6.0 || >=11.0.0}
     os: [darwin]
+
+  howler@2.2.4:
+    resolution: {integrity: sha512-iARIBPgcQrwtEr+tALF+rapJ8qSc+Set2GJQl7xT1MQzWaVkFebdJhR3alVlSiUf5U7nAANKuj3aWpwerocD5w==}
 
   lightningcss-android-arm64@1.33.0:
     resolution: {integrity: sha512-gEpRTalKdosp4Bb8qWtc2iOgE5SeIHlpS1up9bFq2wAyYhl1UdTObYiHe98zEM9SQvSoqQZ1IQD0JNpg3Ml5pg==}
@@ -352,6 +358,8 @@ snapshots:
 
   fsevents@2.3.3:
     optional: true
+
+  howler@2.2.4: {}
 
   lightningcss-android-arm64@1.33.0:
     optional: true

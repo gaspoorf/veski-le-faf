@@ -17,6 +17,9 @@ import { renderOutput } from 'three/tsl'
 import GUI from 'lil-gui'
 
 import { CameraRig } from './effects/CameraRig.js'
+import { useAudio } from './useAudio.js'
+
+const audio = useAudio()
 
 import { chromaticAberration } from './effects/ChromaticAberrationNode.js'
 
@@ -59,7 +62,7 @@ export class Experience {
         this.renderer.shadowMap.enabled = true
         this.renderer.shadowMap.type = THREE.VSMShadowMap
 
-        this.renderer.inspector = new Inspector();
+        // this.renderer.inspector = new Inspector();
         document.body.appendChild(this.renderer.domElement);
         
         
@@ -98,15 +101,19 @@ export class Experience {
 
 
 
+        this.ui = new UI()
+
         const startBtn = document.querySelector('#start-button')
         const reStartBtn = document.querySelector('#restart-button')
         const menu = document.querySelector('#menu')
+
 
         startBtn.addEventListener('click', () => {
             if (!this.started) {
                 this.startGame()
                 startBtn.classList.add('hide')
                 menu.classList.add('hide')
+                this.ui.show()
                 this.gameOverContainer.classList.remove('show')
             }
         })
@@ -128,8 +135,6 @@ export class Experience {
             if (e.code === 'KeyR' && this.isGameOver) this.restart()
         })
 
-        this.ui = new UI()
-        
     }
 
 
@@ -353,6 +358,8 @@ export class Experience {
         introFolder.add(rig, 'introDuration', 0.3, 4, 0.05).name('durée transition')
         
 
+        gui.hide()
+
     }
 
     animate(time) {
@@ -409,6 +416,7 @@ export class Experience {
                 this.coinCount += collected
                 console.log('Pièces :', this.coinCount)
                 this.ui.set('coins', this.coinCount)
+                audio.playCoin()
             }
 
         }
@@ -428,12 +436,21 @@ export class Experience {
 
 
     gameOver() {
+        audio.playHit()
         this.isGameOver = true
         this.hitTime = 0
         this.map.speed = 0
         this.cameraRig.punch()
 
+        document.querySelector('#score span').textContent = Math.floor(this.distance)
+        document.querySelector('#coins span').textContent = this.coinCount
+
         this.gameOverContainer.classList.add('show')
+
+        audio.initAudioContext()
+        audio.playDefeat()
+
+        audio.stopAmbient()
     }
 
     restart() {
@@ -452,6 +469,9 @@ export class Experience {
         this.coinCount = 0
         this.ui.set('score', 0)
         this.ui.set('coins', 0)
+        audio.stopDefeat()
+
+        audio.playAmbient()
 
     }
 
@@ -460,6 +480,8 @@ export class Experience {
         this.started = true
         this.restart()
         this.cameraRig.start()
+        audio.initAudioContext()
+        audio.playAmbient()
     }
 }
 
