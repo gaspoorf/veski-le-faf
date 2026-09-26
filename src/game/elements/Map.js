@@ -1,9 +1,8 @@
 import * as THREE from 'three/webgpu'
-import { color, mix, normalView, texture, uv, vec2, time, sin,smoothstep, normalMap, float, positionLocal, mx_fractal_noise_float } from 'three/tsl'
+import { color, mix, normalView, texture, uv, vec2, smoothstep, normalMap, float, positionLocal, mx_fractal_noise_float } from 'three/tsl'
 import { Obstacles } from './Obstacle.js'
 import { Coins } from './Coins.js'
 import { WORLD_RADIUS } from '../Config.js'
-
 import { Environment } from '../Environment.js'
 
 export class Map extends THREE.Group {
@@ -36,14 +35,7 @@ export class Map extends THREE.Group {
         material.normalNode = normalMap(texture(normalTex, uv().mul(vec2(8, 4))), vec2(1.8))
         // material.wireframe = true
 
-        // const textColor = texture(map, uv().mul(vec2(4, 2)))
-
-
-
-        // const fresnel = normalView.z.oneMinus().pow(2)
         const fresnel = normalView.z.oneMinus().pow(3)
-        // const baseColor = mix(color('#1e3a8a'), color('#23d307'), sin(time).mul(0.5).add(0.5))
-        // material.colorNode = mix(textColor, color('#ffffff'), fresnel)
         material.emissiveNode = color('#b6f59a').mul(fresnel).mul(0.4)
 
         const sphere = new THREE.Mesh(new THREE.SphereGeometry(this.radius, 128, 128), material)
@@ -69,7 +61,6 @@ export class Map extends THREE.Group {
 
 
     update(delta) {
-
         this.speed += delta * 0.03
 
         this.rotation.x += delta * this.speed

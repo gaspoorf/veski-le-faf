@@ -3,7 +3,7 @@ import { Howl, Howler } from "howler";
 
 
 const ambient = new Howl({
-    src: ["/audio/music3.mp3"],
+    src: ["/audio/music.mp3"],
     loop: true,
     volume: 0.1,
     preload: true,
@@ -36,15 +36,6 @@ const hit = new Howl({
 
 
 
-
-// const successSound = new Howl({
-//     src: ["/audio/success.wav"],
-//     volume: 0.8,
-//     preload: true,
-// });
-
-
-
 const defeatSound = new Howl({
     src: ["/audio/defeat.mp3"],
     volume: 0.8,
@@ -57,18 +48,11 @@ const defeatSound = new Howl({
 
 
 export const useAudio = () => {
-  const initAudioContext = () => {
-    if (Howler.ctx && Howler.ctx.state === "suspended") {
-      Howler.ctx.resume();
-    }
-  };
-
-  
-    // const playSuccess = () => {
-    //     successSound.play();
-    // };
-
-
+    const initAudioContext = () => {
+        if (Howler.ctx && Howler.ctx.state === "suspended") {
+            Howler.ctx.resume();
+        }
+    };
 
     const playCoin = () => {
         coin.play();

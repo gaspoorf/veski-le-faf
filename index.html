@@ -3,13 +3,13 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>VESKI LES FAFS</title>
+    <title>VESKI LE FAF</title>
     <link rel="stylesheet" href="/src/style.css" />
   </head>
   <body>
 
     <div id="menu">
-      <img src="/img/vlf.png" alt="logo" />
+      <img src="/img/logo.png" alt="logo" />
     </div>
     <div class="button-container-start">
       <button class="button" id="start-button">LANCER</button>
@@ -17,15 +17,15 @@
 
 
     <div class="game-over-container">
+
       <div id="game-over">
         <img src="/img/lost.svg" alt="game over" />
-
       </div>
 
       <div class="score-container">
 
         <div class="lines-score">
-          AURA
+          <p>AURA</p>
           <div id="score">
             <span>0</span>
             <img class="icon-score" src="/img/score.png" alt="score"/>
@@ -33,7 +33,7 @@
         </div>
 
         <div class="lines-coins">
-          ANTIFACOINS
+          <p>ANTIFACOINS</p>
           <div id="coins">
             <span>0</span>
             <img class="icon-coin" src="/img/coin.png" alt="coin"/>
@@ -42,13 +42,11 @@
 
       </div>
 
-
-
-
       <div class="button-container-go">
         <button id="restart-button" class="button">RELANCER</button>
         <button id="menu-button" class="button">MENU</button>
       </div>
+
     </div>
 
     <script type="module" src="/src/game/Experience.js"></script>

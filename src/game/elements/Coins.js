@@ -1,13 +1,9 @@
 import * as THREE from 'three/webgpu'
-import { color, mix, positionLocal, normalView, step, fract, float, texture, positionGeometry, time, mx_noise_float } from 'three/tsl'
 import { LANES, WORLD_RADIUS } from '../Config.js'
-
 import { clayify} from '../effects/Clay.js'
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
-
 const TWO_PI = Math.PI * 2
-
 
 const SPAWN_ANGLE = -0.85 * Math.PI
 const DESPAWN_ANGLE = 0.6 * Math.PI
@@ -31,9 +27,6 @@ const COLLECT_DURATION = 0.25
 
 
 // const HEAD_NAMES = ['perso1']
-
-
-
 
 function wrapAngle(a) {
     a = (a + Math.PI) % TWO_PI
@@ -77,7 +70,6 @@ export class Coins extends THREE.Group {
         template.add(spinner)
 
 
-
         for (let i = 0; i < poolSize; i++) {
             const coin = template.clone()
             coin.visible = false
@@ -85,8 +77,6 @@ export class Coins extends THREE.Group {
             this.add(coin)
             this.#pool.push(coin)
         }
-
-
 
     }
 
@@ -172,8 +162,6 @@ export class Coins extends THREE.Group {
 
 
     #spawnTrail(rotation) {
-
-
         const lane = Math.floor(Math.random() * LANES.length)
  
         for (let k = 0; k < TRAIL_LENGTH; k++) {

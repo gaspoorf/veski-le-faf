@@ -70,12 +70,7 @@ export class Environment extends THREE.Group {
 
             this.add(mesh)
 
-            
-            
-       
         })
-
-
         
     }
 

@@ -1,10 +1,7 @@
 import * as THREE from 'three/webgpu'
-import { color } from 'three/tsl'
 import { Input } from '../Input.js'
 import { LANES } from '../Config.js'
-
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-
 import { clayify } from '../effects/Clay.js'
 
 
@@ -45,26 +42,12 @@ export class Player extends THREE.Group {
         super()
 
         this.model = null
-
         this.loadModel()
-
-        const material = new THREE.MeshStandardNodeMaterial()
-        // material.colorNode = color('green')
-
-        // this.capsule = new THREE.Mesh(new THREE.CapsuleGeometry(0.05, 0.1, 8, 16), material)
-        // this.add(this.capsule)
-
-        // this.gravity = (2 * this.jumpHeight) / (this.timeToApex ** 2)
-        // this.jumpVelocity = this.gravity * this.timeToApex
-
-        // this.airTime = this.#simulateAirTime()
 
         this.input = new Input()
         this.laneSpeed = 20
         // this.activePos.set(0, 0, 0)
-
         this.position.set(LANES[this.lane], 0, 0)
-        
 
         // this.pos1.set(-1, 0, 0)
         // this.pos2.set(0, 0, 0)
@@ -74,7 +57,7 @@ export class Player extends THREE.Group {
 
     async loadModel() {
         const loader = new GLTFLoader()
-        const gltf = await loader.loadAsync('/models/man-animated2.glb')
+        const gltf = await loader.loadAsync('/models/man-animated.glb')
         const model = gltf.scene
 
         clayify(model, { saturationAmount: 1.4, brightness: 1.3 })
@@ -171,9 +154,6 @@ export class Player extends THREE.Group {
        
         const targetX = LANES[this.lane]
         this.position.x = THREE.MathUtils.damp(this.position.x, targetX, this.laneSpeed, delta)
-
-       
-        
     }
 
 

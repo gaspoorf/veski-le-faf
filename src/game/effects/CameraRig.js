@@ -7,9 +7,8 @@ const easeInOutCubic = (t) => (t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 /
 
 export class CameraRig {
 
-
     //repos
-    offset = new THREE.Vector3(0, 0.5, 1.3)
+    offset = new THREE.Vector3(0, 0.67, 1.35)
     lookAhead = new THREE.Vector3(0, 0.05, -1) 
 
 
@@ -25,8 +24,6 @@ export class CameraRig {
 
     // ptit roulis
     rollAmount = 0.5
- 
-    
 
 
     //fov
@@ -36,15 +33,12 @@ export class CameraRig {
     maxSpeed = 1.2
     fovSmooth = 3
 
-    
-
 
     //gameover
     zoomFov = 18
     zoomDistance = 0.4
     zoomSmooth = 18
     zoomRoll = 0.08
-
     
     
     menuOffset = new THREE.Vector3(1.6, 0.7, 1.8)
@@ -67,7 +61,6 @@ export class CameraRig {
     #gameLook = new THREE.Vector3()
     
     
- 
 
     constructor(camera, player) {
         this.camera = camera
@@ -152,7 +145,6 @@ export class CameraRig {
     start() {
         this.#introPlaying = true
     }
-
 
     punch() {
         this.#zoomTarget = 0.6

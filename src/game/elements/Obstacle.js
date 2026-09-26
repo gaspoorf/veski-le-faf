@@ -1,9 +1,7 @@
 import * as THREE from 'three/webgpu'
-import { color, mix, positionLocal, normalView, step, fract, float, texture, positionGeometry, time, mx_noise_float } from 'three/tsl'
 import { LANES, WORLD_RADIUS } from '../Config.js'
 import { clone as cloneModel } from 'three/addons/utils/SkeletonUtils.js'
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-
 import { clayify} from '../effects/Clay.js'
 
 const TWO_PI = Math.PI * 2
@@ -80,31 +78,6 @@ export class Obstacles extends THREE.Group {
             this.#pools.push(pool)
         })
     }
- 
-
-    
-
-
-
-    // constructor(poolSize = 24) {
-    //     super()
-
-    //     // obstacle 
-    //     this.#heads = HEAD_NAMES.map((name, i) => createHeadMaterials(name, i * 17.3))
-
-    //     const geometry = new THREE.BoxGeometry(HEAD_SIZE, HEAD_SIZE, HEAD_SIZE, 12, 12, 12)
-    //     // geometry.translate(0, 0, 0)
-    //     // const material = createObstacleMaterial()
-
-    //     for (let i = 0; i < poolSize; i++) {
-    //         const mesh = new THREE.Mesh(geometry, this.#heads[0])
-    //         mesh.visible = false
-    //         mesh.userData = { lane: 0, angle: 0 }
-    //         this.add(mesh)
-    //         this.#pool.push(mesh)
-    //     }
-    // }
-
 
 
     update(rotation) {

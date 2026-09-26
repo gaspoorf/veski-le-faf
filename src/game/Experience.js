@@ -1,30 +1,23 @@
 import * as THREE from 'three/webgpu'
-import { color, mix, normalView, time, sin, smoothstep, vec2, vec3, positionWorldDirection, mx_fractal_noise_float, uniform, cos, pass, screenUV, length, float, vec4, mrt, output, sample, saturation, packNormalToRGB, unpackRGBToNormal, atan, floor, fract, abs, hash, screenSize, step, luminance  } from 'three/tsl'
+import { color, mix, normalView, time, sin, smoothstep, vec2, vec3, positionWorldDirection, mx_fractal_noise_float, uniform, cos, pass, screenUV, length, float, vec4, mrt, output, sample, saturation, packNormalToRGB, unpackRGBToNormal, atan, floor, fract, abs, hash, screenSize, step, luminance, renderOutput  } from 'three/tsl'
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
-import { Inspector } from 'three/addons/inspector/Inspector.js'
+// import { Inspector } from 'three/addons/inspector/Inspector.js'
 import { Player } from './elements/Player.js'
 import { Map } from './elements/Map.js'
 import { Input } from './Input.js'
+import { CameraRig } from './effects/CameraRig.js'
+import { useAudio } from './useAudio.js'
+import { UI } from './UI/UI.js'
 
 import { bloom } from 'three/addons/tsl/display/BloomNode.js'
 import { ao } from 'three/addons/tsl/display/GTAONode.js'
-
-
 import { fxaa } from 'three/addons/tsl/display/FXAANode.js'
-import { renderOutput } from 'three/tsl'
-
+import { chromaticAberration } from './effects/ChromaticAberrationNode.js'
 
 import GUI from 'lil-gui'
 
-import { CameraRig } from './effects/CameraRig.js'
-import { useAudio } from './useAudio.js'
 
 const audio = useAudio()
-
-import { chromaticAberration } from './effects/ChromaticAberrationNode.js'
-
-import { UI } from './UI/UI.js'
-
 
 const skyTilt = uniform(0.5)
 
@@ -285,11 +278,7 @@ export class Experience {
 
         // this.renderPipeline.outputNode = vec4(col, 1)
 
-
-
-
         this.renderer.setAnimationLoop((time) => this.animate(time))
-
 
     }
 
@@ -381,7 +370,7 @@ export class Experience {
        
         this.cameraRig.update(delta, this.map.speed)
 
-        const s = THREE.MathUtils.clamp((this.map.speed - 0.5) / 1.0, 0, 1)
+        const s = THREE.MathUtils.clamp((this.map.speed - 0.6) / 1.3, 0, 1)
         this.params.speedLines.value = THREE.MathUtils.damp(this.params.speedLines.value, s, 3, delta)
 
         
@@ -391,17 +380,20 @@ export class Experience {
 
 
         
-        //collision
+       
         if (this.started && !this.isGameOver) {
+
+            //collision
             const hit = this.map.obstacles.checkCollision(this.player.position.x, this.map.rotation.x)
             if (hit && !this.player.isJumping) {
                 console.log('perdu')
                 this.map.speed = 0
                 this.player.fail()
 
+                
                 this.gameOver()
-            
-               
+              
+                
             }
 
 
@@ -437,6 +429,7 @@ export class Experience {
 
     gameOver() {
         audio.playHit()
+
         this.isGameOver = true
         this.hitTime = 0
         this.map.speed = 0
@@ -445,12 +438,14 @@ export class Experience {
         document.querySelector('#score span').textContent = Math.floor(this.distance)
         document.querySelector('#coins span').textContent = this.coinCount
 
-        this.gameOverContainer.classList.add('show')
-
         audio.initAudioContext()
         audio.playDefeat()
 
         audio.stopAmbient()
+
+        setTimeout(() => {
+            this.gameOverContainer.classList.add('show')
+        }, 2000)
     }
 
     restart() {

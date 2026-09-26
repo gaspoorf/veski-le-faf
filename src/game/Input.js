@@ -24,14 +24,6 @@ export class Input {
         });
     }
 
-    // get forward() {
-    //     return this.keys["z"];
-    // }
-
-    // get back() {
-    //     return this.keys["s"];
-    // }
-
     get left() {
         return this.keys["q"];
     }
