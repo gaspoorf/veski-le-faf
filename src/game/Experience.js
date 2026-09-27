@@ -37,6 +37,7 @@ export class Experience {
     isGameOver = false
     hitTime = 0
     distance = 0
+    score = 0
     coinCount = 0 
 
     gameOverContainer = document.querySelector('.game-over-container')
@@ -353,7 +354,7 @@ export class Experience {
         introFolder.add(rig, 'introDuration', 0.3, 4, 0.05).name('durée transition')
         
 
-        // gui.hide()
+        gui.hide()
 
     }
 
@@ -405,8 +406,8 @@ export class Experience {
 
 
             //ui score
-            this.distance += this.map.speed * delta * 10
-            this.ui.set('score', Math.floor(this.distance))
+            this.score += this.map.passedThisFrame
+            this.ui.set('score', this.score)
         
             
             // colision pieces
@@ -442,7 +443,7 @@ export class Experience {
         this.map.speed = 0
         this.cameraRig.punch()
 
-        document.querySelector('#score span').textContent = Math.floor(this.distance)
+        document.querySelector('#score span').textContent = this.score
         document.querySelector('#coins span').textContent = this.coinCount
 
         audio.initAudioContext()
@@ -456,6 +457,7 @@ export class Experience {
     }
 
     restart() {
+        
         this.isGameOver = false
         this.hitTime = 0
         // this.score = 0
@@ -467,7 +469,8 @@ export class Experience {
         this.player.reset()
         this.cameraRig.reset()
 
-        this.distance = 0
+        this.score = 0
+        // this.distance = 0
         this.coinCount = 0
         this.ui.set('score', 0)
         this.ui.set('coins', 0)

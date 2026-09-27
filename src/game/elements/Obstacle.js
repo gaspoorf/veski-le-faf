@@ -98,6 +98,14 @@ export class Obstacles extends THREE.Group {
             this.#spawnRow(rotation)
         }
 
+        let passed = 0
+        for (const mesh of this.#active) {
+            if (!mesh.userData.passed && this.#worldAngle(mesh, rotation) > HIT_ANGLE) {
+                mesh.userData.passed = true
+                passed++
+            }
+        }
+
         //recyclage 
         for (let i = this.#active.length - 1; i >= 0; i--) {
             const mesh = this.#active[i]
@@ -105,6 +113,8 @@ export class Obstacles extends THREE.Group {
                 this.#release(mesh, i)
             }
         }
+        
+        return passed
     }
 
     // collision
@@ -181,6 +191,8 @@ export class Obstacles extends THREE.Group {
         mesh.userData.angle = angle
         mesh.userData.type = type
         mesh.visible = true
+        mesh.userData.passed = false
+
     }
 
 

@@ -65,8 +65,10 @@ export class Map extends THREE.Group {
 
         this.rotation.x += delta * this.speed
 
-        this.obstacles.update(this.rotation.x)
+        // this.obstacles.update(this.rotation.x)
         this.coins.update(this.rotation.x, delta)
+
+        this.passedThisFrame = this.obstacles.update(this.rotation.x)
     }
 
 
