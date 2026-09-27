@@ -1,7 +1,8 @@
 import { useAudio } from './useAudio.js'
 
 const audio = useAudio()
-const MOVE_KEYS = ["q", "d", " ", "s"]
+const MOVE_KEYS = ["q", "d", " ", "z", "s", "arrowleft", "arrowright", "arrowup", "arrowdown"]
+
 
 export class Input {
     keys = {};
@@ -25,19 +26,19 @@ export class Input {
     }
 
     get left() {
-        return this.keys["q"];
+        return !!(this.keys["q"] || this.keys["arrowleft"]);
     }
 
     get right() {
-        return this.keys["d"];
+        return !!(this.keys["d"] || this.keys["arrowright"]);
     }
 
     get jump() {
-        return this.keys[" "];
+        return !!(this.keys[" "] || this.keys["z"] || this.keys["arrowup"]);
     }
 
     get slide() {
-        return this.keys["s"];
+        return !!(this.keys["s"] || this.keys["arrowdown"]);
     }
 
 }
