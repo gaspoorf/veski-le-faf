@@ -100,13 +100,16 @@ export class Experience {
 
         const startBtn = document.querySelector('#start-button')
         const reStartBtn = document.querySelector('#restart-button')
+        const menuBtn = document.querySelector('#menu-button')
         const menu = document.querySelector('#menu')
 
 
         startBtn.addEventListener('click', () => {
             if (!this.started) {
                 this.startGame()
+                startBtn.classList.remove('appear')
                 startBtn.classList.add('hide')
+                menu.classList.remove('appear')
                 menu.classList.add('hide')
                 this.ui.show()
                 this.gameOverContainer.classList.remove('show')
@@ -124,11 +127,23 @@ export class Experience {
         })
 
 
-        //restart temp avant ui
-        window.addEventListener('keydown', (e) => {
-            if (e.code === 'KeyJ' && !this.started) this.startGame()
-            if (e.code === 'KeyR' && this.isGameOver) this.restart()
+        menuBtn.addEventListener('click', () => {
+            this.backToMenu()
+            this.ui.hide()
+            this.gameOverContainer.classList.remove('show')
+            
+            this.menuTimeout = setTimeout(() => {
+                startBtn.classList.replace('hide', 'appear')
+                menu.classList.replace('hide', 'appear')
+            }, this.cameraRig.introDuration * 1000)
         })
+
+
+        //restart temp avant ui
+        // window.addEventListener('keydown', (e) => {
+        //     if (e.code === 'KeyJ' && !this.started) this.startGame()
+        //     if (e.code === 'KeyR' && this.isGameOver) this.restart()
+        // })
 
     }
 
@@ -274,10 +289,7 @@ export class Experience {
 
         const caPass = chromaticAberration(vec4(col, 1), caStrength, vec2(0.5), this.params.aberrationFalloff)
 
-
         this.setupGUI(aoPass, bloomPass)
-
-
 
         this.renderPipeline.outputColorTransform = false
         this.renderPipeline.outputNode = fxaa(renderOutput(caPass))
@@ -285,6 +297,8 @@ export class Experience {
         // this.renderPipeline.outputNode = vec4(col, 1)
 
         this.renderer.setAnimationLoop((time) => this.animate(time))
+
+        audio.playLobby()
 
     }
 
@@ -475,17 +489,28 @@ export class Experience {
         this.ui.set('score', 0)
         this.ui.set('coins', 0)
         audio.stopDefeat()
-
+        audio.stopLobby()
         audio.playAmbient()
+    }
 
+
+    backToMenu() {
+        this.restart()
+        this.started = false
+        this.player.reset(true)
+        this.cameraRig.menu()
+        audio.stopAmbient()
+        audio.playLobby()
     }
 
 
     startGame() {
+        clearTimeout(this.menuTimeout)
         this.started = true
         this.restart()
         this.cameraRig.start()
         audio.initAudioContext()
+        audio.stopLobby()
         audio.playAmbient()
     }
 }

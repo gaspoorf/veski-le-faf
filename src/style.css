@@ -295,3 +295,17 @@ canvas {
     visibility: visible;
   }
 }
+
+
+.appear {
+  animation: appear 0.5s forwards;
+}
+
+@keyframes appear {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}

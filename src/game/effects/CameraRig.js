@@ -54,7 +54,7 @@ export class CameraRig {
     #zoom = 0
     #zoomTarget = 0
     #intro = 0 
-    #introPlaying = false
+    #introDir = 0
 
     #target = new THREE.Vector3()
     #gamePos = new THREE.Vector3()
@@ -97,7 +97,7 @@ export class CameraRig {
         )
 
         
-        if (this.#introPlaying) this.#intro = Math.min(this.#intro + delta / this.introDuration, 1)
+        if (this.#introDir) this.#intro = THREE.MathUtils.clamp(this.#intro + this.#introDir * delta / this.introDuration, 0, 1)
         const k = easeInOutCubic(this.#intro)
         
         this.camera.position.lerpVectors(this.menuOffset, this.#gamePos, k)
@@ -143,7 +143,12 @@ export class CameraRig {
     }
 
     start() {
-        this.#introPlaying = true
+        this.#introDir = 1
+    }
+
+    menu() {
+        this.#introDir = -1
+        this.#zoomTarget = 0
     }
 
     punch() {

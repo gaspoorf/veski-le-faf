@@ -2,6 +2,10 @@ import { Howl, Howler } from "howler";
 
 
 
+const MUSIC_VOLUME = 0.1;
+const FADE_DURATION = 2000;
+let lobbyFadingOut = false;
+
 const ambient = new Howl({
     src: ["/audio/music.ogg"],
     loop: true,
@@ -9,11 +13,19 @@ const ambient = new Howl({
     preload: true,
 });
 
+const lobby = new Howl({
+    src: ["/audio/lobby.ogg"],
+    loop: true,
+    volume: 0.1,
+    preload: true,
+});
+
+
 
 const swoosh = new Howl({
     src: ["/audio/swoosh.ogg"],
     loop: false,
-    volume: 0.1,
+    volume: 0.3,
     preload: true,
 });
 
@@ -64,7 +76,20 @@ export const useAudio = () => {
     };
 
     const playAmbient = () => {
-        if (!ambient.playing()) ambient.play();
+        if (ambient.playing()) return;
+        ambient.volume(0);
+        ambient.play();
+        ambient.fade(0, MUSIC_VOLUME, FADE_DURATION);
+    };
+
+    const playLobby = () => {
+        if (lobbyFadingOut) {
+            lobbyFadingOut = false;
+            lobby.off("fade");
+            lobby.fade(lobby.volume(), MUSIC_VOLUME, FADE_DURATION);
+            return;
+        }
+        if (!lobby.playing()) lobby.play();
     };
 
     const playSwoosh = () => {
@@ -73,6 +98,16 @@ export const useAudio = () => {
 
     const stopAmbient = () => {
         ambient.stop();
+    };
+    const stopLobby = () => {
+        if (!lobby.playing() || lobbyFadingOut) return;
+        lobbyFadingOut = true;
+        lobby.fade(lobby.volume(), 0, FADE_DURATION);
+        lobby.once("fade", () => {
+            lobbyFadingOut = false;
+            lobby.stop();
+            lobby.volume(MUSIC_VOLUME);
+        });
     };
 
     const stopDefeat = () => {
@@ -95,5 +130,7 @@ export const useAudio = () => {
         stopDefeat,
         playSwoosh,
         playCoin,
+        playLobby,
+        stopLobby,
     };
 };

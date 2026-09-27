@@ -4,10 +4,11 @@ import { LANES } from '../Config.js'
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js'
 import { clayify } from '../effects/Clay.js'
+import { useAudio } from '../useAudio.js'
 
 
 // const LANES = [-0.2, 0, 0.2]
-
+const audio = useAudio()
 
 export class Player extends THREE.Group {
 
@@ -171,11 +172,13 @@ export class Player extends THREE.Group {
         const left = !!input.left;
         const right = !!input.right;
 
-        if (left && !this.prevLeft) {
-            this.lane = Math.max(0, this.lane - 1)
+        if (left && !this.prevLeft && this.lane > 0) {
+            this.lane--
+            audio.playSwoosh()
         }
-        if (right && !this.prevRight) {
-            this.lane = Math.min(LANES.length - 1, this.lane + 1)
+        if (right && !this.prevRight && this.lane < LANES.length - 1) {
+            this.lane++
+            audio.playSwoosh()
         }
 
         this.jump(delta)
@@ -225,6 +228,7 @@ export class Player extends THREE.Group {
             this.isJumping = true
             this.jumpTime = 0
             this.jumpBufferTimer = 0
+            audio.playSwoosh()
             this.playAction('jump', 0.08)
         }
 
@@ -272,6 +276,7 @@ export class Player extends THREE.Group {
             this.isSliding = true
             this.slideTime = 0
             this.slideBufferTimer = 0
+            audio.playSwoosh()
             this.playAction('slide', 0.08)
         }
 
@@ -311,9 +316,9 @@ export class Player extends THREE.Group {
     }
 
 
-    reset() {
+    reset(waiting = false) {
         this.dead = false
-        this.waiting = false
+        this.waiting = waiting
         this.lane = 1
         this.position.set(LANES[this.lane], 0, 0)
 
@@ -339,7 +344,7 @@ export class Player extends THREE.Group {
         this.mixer?.stopAllAction()
         this.currentAction = null
 
-        this.playAction('run', 0)
+        this.playAction(waiting ? 'idle' : 'run', 0)
 
     }
 

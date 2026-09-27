@@ -7,7 +7,7 @@ export class UI {
         const hud = document.createElement('div')
 
         hud.innerHTML = `
-            <div class="score"><span data-ui="score">0</span> <img class="icon-score"src="/img/faf.png" alt="coin"></div>
+            <div class="score"><span data-ui="score">0</span> <img class="icon-score"src="/img/faf.webp" alt="coin"></div>
             <div class="coins"><span data-ui="coins">0</span> <img class="icon-coin"src="/img/coin.webp" alt="coin"></div>
         `
         document.body.appendChild(hud)
@@ -24,6 +24,11 @@ export class UI {
     show() {
         this.score.classList.add('show')
         this.coins.classList.add('show')
+    }
+
+    hide() {
+        this.score.classList.remove('show')
+        this.coins.classList.remove('show')
     }
 
     set(name, value) {

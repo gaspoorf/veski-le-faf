@@ -1,6 +1,6 @@
-import { useAudio } from './useAudio.js'
+// import { useAudio } from './useAudio.js'
 
-const audio = useAudio()
+// const audio = useAudio()
 const MOVE_KEYS = ["q", "d", " ", "z", "s", "arrowleft", "arrowright", "arrowup", "arrowdown"]
 
 
@@ -10,14 +10,14 @@ export class Input {
     mouseY = 0;
 
     constructor() {
-        audio.initAudioContext()
+        // audio.initAudioContext()
         window.addEventListener("keydown", (e) => {
             const key = e.key.toLowerCase();
 
             if (e.repeat || this.keys[key]) return;
             this.keys[key] = true;
 
-            if (MOVE_KEYS.includes(key)) audio.playSwoosh()
+            // if (MOVE_KEYS.includes(key)) audio.playSwoosh()
         });
 
         window.addEventListener("keyup", (e) => {
