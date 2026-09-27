@@ -17,8 +17,6 @@ export class Player extends THREE.Group {
 
     isJumping = false
     prevJump = false
-    // velocityY = 0
-    // jumpCut = false
     jumpBufferTimer = 0
     landSquash = 0
 
@@ -28,6 +26,17 @@ export class Player extends THREE.Group {
     jumpHang = 3
     jumpBuffer = 0.12
     jumpTime = 0
+    isFlipping = false
+    flipWindow = 0.4
+    flipStart = 0.35
+
+
+    isSliding = false
+    prevSlide = false
+    slideBufferTimer = 0
+    slideDuration = 0.75
+    slideBuffer = 0.12
+    slideTime = 0
 
 
     // animations
@@ -88,10 +97,12 @@ export class Player extends THREE.Group {
             return clip
         }
 
-        const idleClip = getClip('idle2')
-        const jumpClip= getClip('mixamo.com')
-        const runClip= getClip('mixamo.com.003')
-        const failClip= getClip('fail-anim')
+        const idleClip = getClip('idle')
+        const jumpClip= getClip('jump')
+        const runClip= getClip('run')
+        const failClip= getClip('mixamo.com.002')
+        const slideClip= getClip('slide')
+        const flipClip= getClip('flip')
 
         if (idleClip) this.actions.idle = this.mixer.clipAction(idleClip)
         if (runClip) this.actions.run = this.mixer.clipAction(runClip)
@@ -102,6 +113,22 @@ export class Player extends THREE.Group {
             jump.clampWhenFinished = true
             jump.timeScale = jumpClip.duration / this.jumpDuration
             this.actions.jump = jump
+        }
+
+        if (flipClip) {
+            const flip = this.mixer.clipAction(flipClip)
+            flip.setLoop(THREE.LoopOnce)
+            flip.clampWhenFinished = true
+            this.actions.flip = flip
+        }
+
+        if (slideClip) {
+            this.removeRootMotion(slideClip)
+            const slide = this.mixer.clipAction(slideClip)
+            slide.setLoop(THREE.LoopOnce)
+            slide.clampWhenFinished = true
+            slide.timeScale = slideClip.duration / this.slideDuration
+            this.actions.slide = slide
         }
 
         if (failClip) {
@@ -152,6 +179,7 @@ export class Player extends THREE.Group {
         }
 
         this.jump(delta)
+        this.slide(delta)
 
         this.prevLeft = left
         this.prevRight = right
@@ -167,7 +195,31 @@ export class Player extends THREE.Group {
         const pressed = jump && !this.prevJump
         this.prevJump = jump
 
-        this.jumpBufferTimer = pressed ? this.jumpBuffer : Math.max(0, this.jumpBufferTimer - delta)
+        // this.jumpBufferTimer = pressed ? this.jumpBuffer : Math.max(0, this.jumpBufferTimer - delta)
+
+
+        const canFlip = this.isJumping && !this.isFlipping && this.jumpTime / this.jumpDuration < this.flipWindow
+
+        if (pressed && canFlip) {
+            this.isFlipping = true
+            const flip = this.actions.flip
+            // if (flip) {
+            //     flip.timeScale = flip.getClip().duration / (this.jumpDuration - this.jumpTime)
+            //     this.playAction('flip', 0.08)
+            // }
+            if (flip) {
+                const clipDuration = flip.getClip().duration
+                const remaining = this.jumpDuration - this.jumpTime
+                flip.timeScale = (clipDuration - this.flipStart) / remaining
+                this.playAction('flip', 0.05)
+                flip.time = this.flipStart
+            }
+
+        } else {
+            this.jumpBufferTimer = pressed ? this.jumpBuffer : Math.max(0, this.jumpBufferTimer - delta)
+        }
+
+
 
         if (this.jumpBufferTimer > 0 && !this.isJumping) {
             this.isJumping = true
@@ -187,6 +239,7 @@ export class Player extends THREE.Group {
             if (p >= 1) {
                 this.position.y = 0
                 this.isJumping = false
+                this.isFlipping = false
                 this.landSquash = 1
                 this.playAction('run', 0.15)
             }
@@ -208,10 +261,49 @@ export class Player extends THREE.Group {
     }
 
 
+    slide(delta) {
+        const slide = !!this.input.slide
+        const pressed = slide && !this.prevSlide
+        this.prevSlide = slide
+
+        this.slideBufferTimer = pressed ? this.slideBuffer : Math.max(0, this.slideBufferTimer - delta)
+
+        if (this.slideBufferTimer > 0 && !this.isSliding && !this.isJumping) {
+            this.isSliding = true
+            this.slideTime = 0
+            this.slideBufferTimer = 0
+            this.playAction('slide', 0.08)
+        }
+
+        if (this.isSliding) {
+            this.slideTime += delta
+            if (this.slideTime >= this.slideDuration) {
+                this.isSliding = false
+                if (!this.isJumping) this.playAction('run', 0.15)
+            }
+        }
+    }
+
+    removeRootMotion(clip) {
+        const track = clip.tracks.find(t => t.name.endsWith('Hips.position'))
+        if (!track) return
+        const v = track.values
+        const x0 = v[0], y0 = v[1]
+        for (let i = 0; i < v.length; i += 3) {
+            v[i] = x0
+            v[i + 1] = y0
+            // v[i + 2] (hauteur) conservé
+        }
+    }
+
+
+
     fail() {
         this.dead = true
         this.isJumping = false
+        this.isSliding = false
         this.jumpBufferTimer = 0
+        this.slideBufferTimer = 0
 
         if (this.model) this.model.scale.setScalar(this.baseScale)
 
@@ -226,14 +318,19 @@ export class Player extends THREE.Group {
         this.position.set(LANES[this.lane], 0, 0)
 
         this.isJumping = false
+        this.isSliding = false
+        this.isFlipping = false
+
 
         this.jumpTime = 0
         this.jumpBufferTimer = 0
         this.landSquash = 0
+        this.slideBufferTimer = 0
 
         this.prevLeft = !!this.input.left
         this.prevRight = !!this.input.right
         this.prevJump = !!this.input.jump
+        this.prevSlide = !!this.input.slide
 
         if (this.model) {
             this.model.scale.setScalar(this.baseScale)

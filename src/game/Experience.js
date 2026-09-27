@@ -384,8 +384,8 @@ export class Experience {
         if (this.started && !this.isGameOver) {
 
             //collision
-            const hit = this.map.obstacles.checkCollision(this.player.position.x, this.map.rotation.x)
-            if (hit && !this.player.isJumping) {
+            const hit = this.map.obstacles.checkCollision(this.player, this.map.rotation.x)
+            if (hit) {
                 console.log('perdu')
                 this.map.speed = 0
                 this.player.fail()

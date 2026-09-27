@@ -13,9 +13,12 @@ const DESPAWN_ANGLE = 0.6 * Math.PI
 const HIT_ANGLE = 0.1
 const HIT_LANE_DISTANCE = 0.15
 
-const HEAD_SIZE = 0.18
 
 const OBSTACLE_HEIGHT = 0.15
+
+const HIGH_CHANCE = 0.3
+const WALL_CHANCE = 0.15
+const FLOAT_HEIGHT = 0.15
 
 // const MODEL_NAMES = ['marine', 'zemmour']
 
@@ -105,13 +108,19 @@ export class Obstacles extends THREE.Group {
     }
 
     // collision
-    checkCollision(playerX, rotation) {
+    checkCollision(player, rotation) {
         for (const mesh of this.#active) {
-            if (Math.abs(LANES[mesh.userData.lane] - playerX) > HIT_LANE_DISTANCE) continue
-            if (Math.abs(this.#worldAngle(mesh, rotation)) < HIT_ANGLE) return mesh
+            if (Math.abs(LANES[mesh.userData.lane] - player.position.x) > HIT_LANE_DISTANCE) continue
+            if (Math.abs(this.#worldAngle(mesh, rotation)) >= HIT_ANGLE) continue
+
+            const type = mesh.userData.type
+            if (type === 'ground' && player.isJumping) continue
+            if (type === 'high' && player.isSliding) continue
+            return mesh
         }
         return null
     }
+
 
    
     reset(rotation = 0) {
@@ -120,21 +129,29 @@ export class Obstacles extends THREE.Group {
         this.#sinceLastRow = 0
     }
 
+    #spawnOne(lane, angle, type) {
+        const pool = this.#pools[Math.floor(Math.random() * this.#pools.length)]
+        const obstacle = pool.pop()
+        if (!obstacle) return
+        this.#place(obstacle, lane, angle, type)
+        this.#active.push(obstacle)
+    }
+
+
     #spawnRow(rotation) {
-
         if (this.#pools.length === 0) return
-
-
         const localAngle = SPAWN_ANGLE - rotation
-
         
         for (const lane of this.#randomPattern()) {
-
-            const pool = this.#pools[Math.floor(Math.random() * this.#pools.length)]
-            const obstacle = pool.pop()
-            if (!obstacle) continue
-            this.#place(obstacle, lane, localAngle)
-            this.#active.push(obstacle)
+            const r = Math.random()
+            if (r < WALL_CHANCE) {
+                this.#spawnOne(lane, localAngle, 'ground')
+                this.#spawnOne(lane, localAngle, 'high')
+            } else if (r < WALL_CHANCE + HIGH_CHANCE) {
+                this.#spawnOne(lane, localAngle, 'high')
+            } else {
+                this.#spawnOne(lane, localAngle, 'ground')
+            }
         }
 
     }
@@ -152,15 +169,17 @@ export class Obstacles extends THREE.Group {
 
 
 
-    #place(mesh, lane, angle) {
+    #place(mesh, lane, angle, type = 'ground') {
         const x = LANES[lane]
-
         const r = Math.sqrt(WORLD_RADIUS * WORLD_RADIUS - x * x)
+        const radius = r + (type === 'high' ? FLOAT_HEIGHT : 0)
 
-        mesh.position.set(x, Math.cos(angle) * (r + HEAD_SIZE / 2), Math.sin(angle) * r)
+        // mesh.position.set(x, Math.cos(angle) * (radius + HEAD_SIZE / 2), Math.sin(angle) * radius)
+        mesh.position.set(x, Math.cos(angle) * radius, Math.sin(angle) * radius)
         mesh.rotation.set(angle, 0, 0)
         mesh.userData.lane = lane
         mesh.userData.angle = angle
+        mesh.userData.type = type
         mesh.visible = true
     }
 

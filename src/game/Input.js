@@ -1,7 +1,7 @@
 import { useAudio } from './useAudio.js'
 
 const audio = useAudio()
-const MOVE_KEYS = ["q", "d", " "]
+const MOVE_KEYS = ["q", "d", " ", "s"]
 
 export class Input {
     keys = {};
@@ -34,6 +34,10 @@ export class Input {
 
     get jump() {
         return this.keys[" "];
+    }
+
+    get slide() {
+        return this.keys["s"];
     }
 
 }
