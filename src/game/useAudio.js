@@ -3,7 +3,7 @@ import { Howl, Howler } from "howler";
 
 
 const ambient = new Howl({
-    src: ["/audio/music.mp3"],
+    src: ["/audio/music.ogg"],
     loop: true,
     volume: 0.1,
     preload: true,
@@ -11,7 +11,7 @@ const ambient = new Howl({
 
 
 const swoosh = new Howl({
-    src: ["/audio/swoosh.mp3"],
+    src: ["/audio/swoosh.ogg"],
     loop: false,
     volume: 0.1,
     preload: true,
@@ -19,7 +19,7 @@ const swoosh = new Howl({
 
 
 const coin = new Howl({
-    src: ["/audio/coin.mp3"],
+    src: ["/audio/coin.ogg"],
     loop: false,
     volume: 0.1,
     preload: true,
@@ -28,7 +28,7 @@ const coin = new Howl({
 
 
 const hit = new Howl({
-    src: ["/audio/hit.mp3"],
+    src: ["/audio/hit.ogg"],
     loop: false,
     volume: 0.5,
     preload: true,
@@ -37,7 +37,7 @@ const hit = new Howl({
 
 
 const defeatSound = new Howl({
-    src: ["/audio/defeat.mp3"],
+    src: ["/audio/defeat.ogg"],
     volume: 0.8,
     preload: true,
 });

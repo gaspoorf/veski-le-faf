@@ -2,6 +2,7 @@ import * as THREE from 'three/webgpu'
 import { LANES, WORLD_RADIUS } from '../Config.js'
 import { clone as cloneModel } from 'three/addons/utils/SkeletonUtils.js'
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js'
 import { clayify} from '../effects/Clay.js'
 
 const TWO_PI = Math.PI * 2
@@ -42,7 +43,11 @@ export class Obstacles extends THREE.Group {
 
     
     async load(urls, poolPerModel = 16) {
+        const dracoLoader = new DRACOLoader()
+        dracoLoader.setDecoderPath('/draco/')
+        
         const loader = new GLTFLoader()
+        loader.setDRACOLoader(dracoLoader)
         const gltfs = await Promise.all(urls.map((url) => loader.loadAsync(url)))
  
         gltfs.forEach((gltf, modelIndex) => {

@@ -2,6 +2,7 @@ import * as THREE from 'three/webgpu'
 import { Input } from '../Input.js'
 import { LANES } from '../Config.js'
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js'
 import { clayify } from '../effects/Clay.js'
 
 
@@ -56,7 +57,11 @@ export class Player extends THREE.Group {
 
 
     async loadModel() {
+        const dracoLoader = new DRACOLoader()
+        dracoLoader.setDecoderPath('/draco/')
+
         const loader = new GLTFLoader()
+        loader.setDRACOLoader(dracoLoader)
         const gltf = await loader.loadAsync('/models/man-animated.glb')
         const model = gltf.scene
 

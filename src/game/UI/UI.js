@@ -7,8 +7,8 @@ export class UI {
         const hud = document.createElement('div')
 
         hud.innerHTML = `
-            <div class="score"><span data-ui="score">0</span> <img class="icon-score"src="/img/score.png" alt="coin"></div>
-            <div class="coins"><span data-ui="coins">0</span> <img class="icon-coin"src="/img/coin.png" alt="coin"></div>
+            <div class="score"><span data-ui="score">0</span> <img class="icon-score"src="/img/score.webp" alt="coin"></div>
+            <div class="coins"><span data-ui="coins">0</span> <img class="icon-coin"src="/img/coin.webp" alt="coin"></div>
         `
         document.body.appendChild(hud)
 

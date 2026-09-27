@@ -17,7 +17,7 @@ export class Map extends THREE.Group {
         super()
 
         // normal map
-        const normalTex = new THREE.TextureLoader().load('/textures/bosse.jpg')
+        const normalTex = new THREE.TextureLoader().load('/textures/normal-map.jpg')
         normalTex.wrapS = normalTex.wrapT = THREE.RepeatWrapping
 
         const p = positionLocal.mul(1.5)

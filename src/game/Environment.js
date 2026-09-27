@@ -1,5 +1,6 @@
 import * as THREE from 'three/webgpu'
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js'
+import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js'
 import { LANES, WORLD_RADIUS } from './Config.js'
 
 import { toClay } from './effects/Clay.js'
@@ -9,7 +10,11 @@ import { toClay } from './effects/Clay.js'
 const LANE_CLEARANCE = Math.max(...LANES.map(Math.abs)) + 0.15
 
 
+
+const dracoLoader = new DRACOLoader()
+dracoLoader.setDecoderPath('/draco/')
 const loader = new GLTFLoader()
+loader.setDRACOLoader(dracoLoader)
 
 
 const _up = new THREE.Vector3(0, 1, 0)

@@ -2,6 +2,8 @@ import * as THREE from 'three/webgpu'
 import { LANES, WORLD_RADIUS } from '../Config.js'
 import { clayify} from '../effects/Clay.js'
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js'
+
 
 const TWO_PI = Math.PI * 2
 
@@ -48,7 +50,11 @@ export class Coins extends THREE.Group {
   
 
     async loadModel(url, poolSize = 40) {
+        const dracoLoader = new DRACOLoader()
+        dracoLoader.setDecoderPath('/draco/')
+
         const loader = new GLTFLoader()
+        loader.setDRACOLoader(dracoLoader)
         const gltf = await loader.loadAsync('/models/coin.glb')
         const model = gltf.scene
 
