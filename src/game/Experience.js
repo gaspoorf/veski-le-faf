@@ -1,5 +1,5 @@
 import * as THREE from 'three/webgpu'
-import { color, mix, normalView, time, sin, smoothstep, vec2, vec3, positionWorldDirection, mx_fractal_noise_float, uniform, cos, pass, screenUV, length, float, vec4, mrt, output, sample, saturation, packNormalToRGB, unpackRGBToNormal, atan, floor, fract, abs, hash, screenSize, step, luminance, renderOutput  } from 'three/tsl'
+import { color, mix, normalView, time, sin, smoothstep, vec2, vec3, positionLocal, normalize, mx_fractal_noise_float, uniform, cos, pass, screenUV, length, float, vec4, mrt, output, sample, saturation, packNormalToRGB, unpackRGBToNormal, atan, floor, fract, abs, hash, screenSize, step, luminance, renderOutput  } from 'three/tsl'
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
 // import { Inspector } from 'three/addons/inspector/Inspector.js'
 import { Player } from './elements/Player.js'
@@ -19,7 +19,8 @@ import GUI from 'lil-gui'
 
 const audio = useAudio()
 
-const skyTilt = uniform(0.5)
+const skyHorizon = uniform(0.53)
+const cloudScale = uniform(4.77)
 
 
 export class Experience {
@@ -171,16 +172,20 @@ export class Experience {
 
 
         //sky
-        const d = positionWorldDirection
-        const dir = vec3( d.x,d.y.mul(cos(skyTilt)).sub(d.z.mul(sin(skyTilt))), d.y.mul(sin(skyTilt)).add(d.z.mul(cos(skyTilt))))
+        const dir = normalize(positionLocal.add(vec3(0, skyHorizon, 0)))
         const sky = mix(color('#bfe3ff'), color('#2f7fe0'), smoothstep(-0.1, 0.6, dir.y))
 
-        // Nuages
-        const cloudUv = dir.xz.div(dir.y.max(0.05)).mul(0.6).add(vec2(0, time.mul(0.03)))
-        const noise = mx_fractal_noise_float(vec3(cloudUv, time.mul(0.02)), 4, 2.0, 0.5)
+        const noise = mx_fractal_noise_float(dir.mul(cloudScale).add(vec3(0, time.mul(0.02), time.mul(0.04))), 4, 2.0, 0.5)
         const clouds = smoothstep(0.05, 0.45, noise).mul(smoothstep(0.0, 0.25, dir.y))
 
-        this.scene.backgroundNode = mix(sky, color('#ffffff'), clouds.mul(0.9))
+        const skyMaterial = new THREE.MeshBasicNodeMaterial({ side: THREE.BackSide, depthWrite: false, fog: false })
+        skyMaterial.colorNode = mix(sky, color('#ffffff'), clouds.mul(0.9))
+
+        this.sky = new THREE.Mesh(new THREE.SphereGeometry(1, 64, 32), skyMaterial)
+        this.sky.scale.setScalar(50)
+        this.sky.renderOrder = -1
+        this.sky.frustumCulled = false
+        this.scene.add(this.sky)
 
        
 
@@ -307,7 +312,8 @@ export class Experience {
 
 
         const skyFolder = gui.addFolder('sky')
-        skyFolder.add(skyTilt, 'value', -1, 1, 0.01).name('inclinaison')
+        skyFolder.add(skyHorizon, 'value', 0, 0.9, 0.01).name('horizon')
+        skyFolder.add(cloudScale, 'value', 0.5, 8, 0.01).name('taille nuages')
 
 
         const rig = this.cameraRig
@@ -347,7 +353,7 @@ export class Experience {
         introFolder.add(rig, 'introDuration', 0.3, 4, 0.05).name('durée transition')
         
 
-        gui.hide()
+        // gui.hide()
 
     }
 
@@ -369,6 +375,7 @@ export class Experience {
         // }
        
         this.cameraRig.update(delta, this.map.speed)
+        this.sky.position.copy(this.camera.position)
 
         const s = THREE.MathUtils.clamp((this.map.speed - 0.6) / 1.3, 0, 1)
         this.params.speedLines.value = THREE.MathUtils.damp(this.params.speedLines.value, s, 3, delta)
