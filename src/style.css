@@ -38,6 +38,9 @@ body {
   overflow: hidden;
   background: transparent;
   font-family: OpenRunde;
+  overflow: hidden;
+  touch-action: none;
+  overscroll-behavior: none;
 }
 
 canvas {
