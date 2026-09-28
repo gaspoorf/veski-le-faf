@@ -8,6 +8,7 @@ import { Input } from './Input.js'
 import { CameraRig } from './effects/CameraRig.js'
 import { useAudio } from './useAudio.js'
 import { UI } from './UI/UI.js'
+import { Loader } from './UI/Loader.js'
 
 import { bloom } from 'three/addons/tsl/display/BloomNode.js'
 import { ao } from 'three/addons/tsl/display/GTAONode.js'
@@ -24,6 +25,9 @@ const cloudScale = uniform(4.77)
 
 
 export class Experience {
+    // en premier : doit écouter le DefaultLoadingManager avant que Player/Map lancent leurs chargements
+    loader = new Loader()
+
     scene = new THREE.Scene();
     camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 100);
     renderer = new THREE.WebGPURenderer({ antialias: true });
@@ -41,7 +45,6 @@ export class Experience {
     coinCount = 0 
 
     gameOverContainer = document.querySelector('.game-over-container')
-
 
 
     constructor() {
@@ -67,8 +70,8 @@ export class Experience {
         this.timer = new THREE.Timer();
        
 
-        this.player = new Player();
-        this.input = new Input();
+        // this.player = new Player();
+        // this.input = new Input();
 
 
         this.params = {
@@ -175,15 +178,17 @@ export class Experience {
 
 
         // fleurs et hebres glb
-        await this.map.environment.addModel('/models/flower.glb', 100, { minScale: 0.01, maxScale: 0.025 })
-        await this.map.environment.addModel('/models/bush.glb', 220, { minScale: 0.005, maxScale: 0.01 })
+        await Promise.all([
+            this.map.environment.addModel('/models/flower.glb', 100, { minScale: 0.01, maxScale: 0.025 }),
+            this.map.environment.addModel('/models/bush.glb', 220, { minScale: 0.005, maxScale: 0.01 }),
 
-        await this.map.coins.loadModel('/models/coin.glb')
+            this.map.coins.loadModel('/models/coin.glb'),
 
-        await this.map.obstacles.load([
-            '/models/fafs/marine.glb',
-            '/models/fafs/zemmour.glb',
-            '/models/fafs/trump.glb',
+            this.map.obstacles.load([
+                '/models/fafs/marine.glb',
+                '/models/fafs/zemmour.glb',
+                '/models/fafs/trump.glb',
+            ]),
         ])
 
 
@@ -298,6 +303,9 @@ export class Experience {
 
         this.renderer.setAnimationLoop((time) => this.animate(time))
 
+        await this.loader.waitForEnter()
+
+        audio.initAudioContext()
         audio.playLobby()
 
     }

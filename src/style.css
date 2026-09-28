@@ -48,6 +48,39 @@ canvas {
 }
 
 
+.loader{
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: #ffffff;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+  gap: 1rem;
+}
+
+.loader .enter-button{
+  display: none;
+}
+
+.loader.ready .enter-button{
+  display: block;
+  animation: fadeIn 0.5s forwards;
+}
+
+
+.loader.ready .text{
+  display: none;
+}
+
+.loader .text{
+  color: black;
+  font-weight: 600;
+}
 
 .score{
   position: absolute;
