@@ -4,12 +4,18 @@ const { damp } = THREE.MathUtils
 
 const easeInOutCubic = (t) => (t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2)
 
+const isMobile = window.innerWidth < 768
 
 export class CameraRig {
 
+    isMobile = isMobile
+    camDistance = isMobile ? 1.19 : 1.35
+    targetHeight = isMobile ? -0.13 : 0.05
+    
+
     //repos
-    offset = new THREE.Vector3(0, 0.67, 1.35)
-    lookAhead = new THREE.Vector3(0, 0.05, -1) 
+    offset = new THREE.Vector3(0, 0.67, this.camDistance)
+    lookAhead = new THREE.Vector3(0, this.targetHeight, -1) 
 
 
     followX = 0.6

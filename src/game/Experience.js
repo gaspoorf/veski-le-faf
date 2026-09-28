@@ -467,11 +467,12 @@ export class Experience {
 
         setTimeout(() => {
             this.gameOverContainer.classList.add('show')
+            this.ui.hide()
         }, 2000)
     }
 
     restart() {
-        
+        this.ui.show()
         this.isGameOver = false
         this.hitTime = 0
         // this.score = 0

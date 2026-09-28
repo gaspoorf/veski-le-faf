@@ -114,6 +114,18 @@ canvas {
 }
 
 
+@media (max-width: 768px) {
+  #menu {
+    width: 90%;
+  }
+
+  #menu img {
+    width: 100%;
+  }
+}
+
+
+
 
 .button-container-start{
   position: absolute;
@@ -179,12 +191,19 @@ canvas {
   width: 20rem;
 }
 
+@media (max-width: 768px) {
+  #game-over{
+    width: 15rem;
+  }
+}
+
 #game-over img{
   width: 100%;
 }
 
 .game-over-container{
   position: absolute;
+  z-index: 2;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
@@ -204,10 +223,17 @@ canvas {
   opacity: 0;
   align-items: center;
 
+  overflow: hidden;
 
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+}
+
+@media (max-width: 768px) {
+  .game-over-container{
+    width: calc(100% - 9rem);
+  }
 }
 
 .button-container-go{
@@ -275,6 +301,11 @@ canvas {
   width: 100%;
 }
 
+@media (max-width: 768px) {
+  .lines-score, .lines-coins{
+    font-size: 1.2rem;
+  }
+}
 .lines-score .icon-score, 
 .lines-coins .icon-coin{
   width: 70px;
@@ -289,6 +320,15 @@ canvas {
   .icon-score, .icon-coin{
     width: 50px;
     height: 50px;
+  }
+}
+
+@media (max-width: 768px) {
+  #score, #coins{
+    .icon-score, .icon-coin{
+      width: 40px;
+      height: 40px;
+    }
   }
 }
 
