@@ -188,6 +188,7 @@ export class Experience {
                 '/models/fafs/marine.glb',
                 '/models/fafs/zemmour.glb',
                 '/models/fafs/trump.glb',
+                '/models/fafs/net.glb',
             ]),
         ])
 
