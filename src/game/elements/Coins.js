@@ -21,10 +21,11 @@ const TRAIL_LENGTH = 5
 const TRAIL_GAP = 0.06
  
 // Ramassage
-const PICK_ANGLE = 0.05
+const PICK_ANGLE = 0.12
+const PICK_ANGLE_BEHIND = 0.02
 const PICK_LANE_DISTANCE = 0.1
 const PICK_HEIGHT = 0.15
-const COLLECT_DURATION = 0.25
+const COLLECT_DURATION = 0.15
 
 
 
@@ -146,7 +147,8 @@ export class Coins extends THREE.Group {
  
             if (Math.abs(LANES[coin.userData.lane] - playerX) > PICK_LANE_DISTANCE) continue
             if (Math.abs(playerY - COIN_HEIGHT) > PICK_HEIGHT) continue
-            if (Math.abs(this.#worldAngle(coin, rotation)) > PICK_ANGLE) continue
+            const a = this.#worldAngle(coin, rotation)
+            if (a < -PICK_ANGLE || a > PICK_ANGLE_BEHIND) continue
  
             this.#active.splice(i, 1)
             coin.userData.collectTime = 0

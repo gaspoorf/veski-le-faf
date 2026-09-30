@@ -346,7 +346,8 @@ canvas {
 
 @media (max-width: 768px) {
   .lines-score, .lines-coins{
-    font-size: 1.2rem;
+    font-size: 1.1rem;
+    text-align: left;
   }
 }
 .lines-score .icon-score, 
