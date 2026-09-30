@@ -104,15 +104,14 @@ export class Experience {
         const reStartBtn = document.querySelector('#restart-button')
         const menuBtn = document.querySelector('#menu-button')
         const menu = document.querySelector('#menu')
+        const startContainer = document.querySelector('.button-container-start')
 
 
         startBtn.addEventListener('click', () => {
             if (!this.started) {
                 this.startGame()
-                startBtn.classList.remove('appear')
-                startBtn.classList.add('hide')
-                menu.classList.remove('appear')
-                menu.classList.add('hide')
+                startContainer.classList.add('ui-hidden')
+                menu.classList.add('ui-hidden')
                 this.ui.show()
                 this.gameOverContainer.classList.remove('show')
             }
@@ -135,8 +134,8 @@ export class Experience {
             this.gameOverContainer.classList.remove('show')
             
             this.menuTimeout = setTimeout(() => {
-                startBtn.classList.replace('hide', 'appear')
-                menu.classList.replace('hide', 'appear')
+                startContainer.classList.remove('ui-hidden')
+                menu.classList.remove('ui-hidden')
             }, this.cameraRig.introDuration * 1000)
         })
 
