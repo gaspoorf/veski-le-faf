@@ -53,6 +53,10 @@ export class CameraRig {
     menuTarget = new THREE.Vector3(0, 0.2, 0)
     introDuration = 1.6                    
 
+    mouseYawMax = 0.35
+    mousePitchMax = 0.15
+    mouseSmooth = 4
+
     
     
     #x = 0
@@ -63,6 +67,11 @@ export class CameraRig {
     #zoomTarget = 0
     #intro = 0 
     #introDir = 0
+    #mouse = new THREE.Vector2()
+    #yaw = 0
+    #pitch = 0
+    #menuPos = new THREE.Vector3()
+    #euler = new THREE.Euler(0, 0, 0, 'YXZ')
 
     #target = new THREE.Vector3()
     #gamePos = new THREE.Vector3()
@@ -75,6 +84,13 @@ export class CameraRig {
         this.player = player
 
         this.#fov = camera.fov
+
+        window.addEventListener('pointermove', (e) => {
+            this.#mouse.set(
+                (e.clientX / window.innerWidth) * 2 - 1,
+                (e.clientY / window.innerHeight) * 2 - 1
+            )
+        })
 
         this.update(0)
     }
@@ -108,7 +124,14 @@ export class CameraRig {
         if (this.#introDir) this.#intro = THREE.MathUtils.clamp(this.#intro + this.#introDir * delta / this.introDuration, 0, 1)
         const k = easeInOutCubic(this.#intro)
         
-        this.camera.position.lerpVectors(this.menuOffset, this.#gamePos, k)
+        // mvt de cam menu
+        const clamp = THREE.MathUtils.clamp
+        this.#yaw = damp(this.#yaw, clamp(-this.#mouse.x, -1, 1) * this.mouseYawMax, this.mouseSmooth, delta)
+        this.#pitch = damp(this.#pitch, clamp(-this.#mouse.y, -1, 1) * this.mousePitchMax, this.mouseSmooth, delta)
+        this.#euler.set(this.#pitch, this.#yaw, 0)
+        this.#menuPos.copy(this.menuOffset).sub(this.menuTarget).applyEuler(this.#euler).add(this.menuTarget)
+
+        this.camera.position.lerpVectors(this.#menuPos, this.#gamePos, k)
         this.#target.lerpVectors(this.menuTarget, this.#gameLook, k)
         this.camera.lookAt(this.#target)
 
