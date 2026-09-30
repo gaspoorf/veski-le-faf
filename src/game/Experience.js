@@ -179,8 +179,10 @@ export class Experience {
 
         // fleurs et hebres glb
         await Promise.all([
-            this.map.environment.addModel('/models/flower.glb', 100, { minScale: 0.01, maxScale: 0.025 }),
-            this.map.environment.addModel('/models/bush.glb', 220, { minScale: 0.005, maxScale: 0.01 }),
+            this.map.environment.addModel('/models/flower.glb', 70, { minScale: 0.01, maxScale: 0.03 }),
+            this.map.environment.addModel('/models/flower-orange.glb', 70, { minScale: 0.01, maxScale: 0.03 }),
+            this.map.environment.addModel('/models/flower-blue.glb', 70, { minScale: 0.01, maxScale: 0.03 }),
+            this.map.environment.addModel('/models/bush.glb', 250, { minScale: 0.005, maxScale: 0.015 }),
 
             this.map.coins.loadModel('/models/coin.glb'),
 
@@ -202,7 +204,7 @@ export class Experience {
         const clouds = smoothstep(0.05, 0.45, noise).mul(smoothstep(0.0, 0.25, dir.y))
 
         const skyMaterial = new THREE.MeshBasicNodeMaterial({ side: THREE.BackSide, depthWrite: false, fog: false })
-        skyMaterial.colorNode = mix(sky, color('#ffffff'), clouds.mul(0.9))
+        skyMaterial.colorNode = mix(sky, color('#e8f0ff'), clouds.mul(0.9))
 
         this.sky = new THREE.Mesh(new THREE.SphereGeometry(1, 64, 32), skyMaterial)
         this.sky.scale.setScalar(50)
@@ -303,6 +305,8 @@ export class Experience {
 
         // this.renderPipeline.outputNode = vec4(col, 1)
 
+        await this.warmup()
+
         this.renderer.setAnimationLoop((time) => this.animate(time))
 
         await this.loader.waitForEnter()
@@ -313,6 +317,26 @@ export class Experience {
     }
 
 
+
+    // rendu et compil durant le chargement 
+    async warmup() {
+        await this.renderer.init()
+
+        const restore = []
+        this.scene.traverse((object) => {
+            restore.push([object, object.visible, object.frustumCulled])
+            object.visible = true
+            object.frustumCulled = false
+        })
+
+        this.renderPipeline.render()
+
+        for (const [object, visible, frustumCulled] of restore) {
+            object.visible = visible
+            object.frustumCulled = frustumCulled
+        }
+    }
+    
 
     setupGUI(aoPass, bloomPass) {
         const gui = new GUI({ title: 'Réglages' })
