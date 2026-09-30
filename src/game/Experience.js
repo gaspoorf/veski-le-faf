@@ -189,6 +189,7 @@ export class Experience {
                 '/models/fafs/zemmour.glb',
                 '/models/fafs/trump.glb',
                 '/models/fafs/net.glb',
+                '/models/fafs/musk.glb',
             ]),
         ])
 
