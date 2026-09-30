@@ -20,12 +20,11 @@ import GUI from 'lil-gui'
 
 const audio = useAudio()
 
-const skyHorizon = uniform(0.53)
+const skyHorizon = uniform(0.7)
 const cloudScale = uniform(4.77)
 
 
 export class Experience {
-    // en premier : doit écouter le DefaultLoadingManager avant que Player/Map lancent leurs chargements
     loader = new Loader()
 
     scene = new THREE.Scene();

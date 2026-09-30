@@ -9,12 +9,14 @@ const isMobile = window.innerWidth < 768
 export class CameraRig {
 
     isMobile = isMobile
-    camDistance = isMobile ? 1.19 : 1.35
-    targetHeight = isMobile ? -0.13 : 0.05
+    camDistance = isMobile ? 1.22 : 1.3
+    targetHeight = isMobile ? -0.35 : -0.3
+
+    posY = isMobile ? 0.75 : 0.85
     
 
     //repos
-    offset = new THREE.Vector3(0, 0.67, this.camDistance)
+    offset = new THREE.Vector3(0, this.posY, this.camDistance)
     lookAhead = new THREE.Vector3(0, this.targetHeight, -1) 
 
 
@@ -48,7 +50,7 @@ export class CameraRig {
     
     
     menuOffset = new THREE.Vector3(1.6, 0.7, 1.8)
-    menuTarget = new THREE.Vector3(0, 0.05, 0)
+    menuTarget = new THREE.Vector3(0, 0.2, 0)
     introDuration = 1.6                    
 
     
