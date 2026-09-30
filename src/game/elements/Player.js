@@ -90,7 +90,7 @@ export class Player extends THREE.Group {
 
         //lancer animation
         this.mixer = new THREE.AnimationMixer(model)
-        console.log('Animations :', gltf.animations.map(clip => clip.name))
+        // console.log('Animations :', gltf.animations.map(clip => clip.name))
 
         const getClip = (name) => {
             const clip = THREE.AnimationClip.findByName(gltf.animations, name)

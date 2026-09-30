@@ -120,7 +120,7 @@ export class Experience {
         reStartBtn.addEventListener('click', () => {
             
             // if (!this.started) {
-                console.log('restart')
+                // console.log('restart')
                 this.restart()
                 // reStartBtn.classList.add('hide')
                 this.gameOverContainer.classList.remove('show')
@@ -440,7 +440,7 @@ export class Experience {
             //collision
             const hit = this.map.obstacles.checkCollision(this.player, this.map.rotation.x)
             if (hit) {
-                console.log('perdu')
+                // console.log('perdu')
                 this.map.speed = 0
                 this.player.fail()
 
@@ -460,7 +460,7 @@ export class Experience {
             const collected = this.map.coins.collect(this.player.position.x, this.player.position.y, this.map.rotation.x)
             if (collected) {
                 this.coinCount += collected
-                console.log('Pièces :', this.coinCount)
+                // console.log('Pièces :', this.coinCount)
                 this.ui.set('coins', this.coinCount)
                 audio.playCoin()
             }
@@ -469,7 +469,7 @@ export class Experience {
 
 
         if (this.isGameOver) {
-            console.log('game over')
+            // console.log('game over')
             this.hitTime += delta
             const t = Math.min(this.hitTime / 0.6, 1)
             this.params.hitFx.value = 1 - (1 - t) ** 3 
