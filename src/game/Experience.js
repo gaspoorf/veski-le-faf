@@ -4,7 +4,7 @@ import { color, mix, normalView, time, sin, smoothstep, vec2, vec3, positionLoca
 // import { Inspector } from 'three/addons/inspector/Inspector.js'
 import { Player } from './elements/Player.js'
 import { Map } from './elements/Map.js'
-import { Input } from './Input.js'
+// import { Input } from './Input.js'
 import { CameraRig } from './effects/CameraRig.js'
 import { useAudio } from './useAudio.js'
 import { UI } from './UI/UI.js'
@@ -28,9 +28,13 @@ const cloudScale = uniform(4.77)
 const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)
 const isMobile = isIOS || /Android/i.test(navigator.userAgent)
 
+// const QUALITY = isMobile
+//     ? { pixelRatio: Math.min(window.devicePixelRatio, 1.5), shadowMapSize: 1024, ao: false, fxaa: false }
+//     : { pixelRatio: Math.min(window.devicePixelRatio, 2), shadowMapSize: 2048, ao: true, fxaa: true }
+
 const QUALITY = isMobile
-    ? { pixelRatio: 1, shadowMapSize: 1024, ao: false }
-    : { pixelRatio: Math.min(window.devicePixelRatio, 2), shadowMapSize: 2048, ao: true }
+    ? { pixelRatio: Math.min(window.devicePixelRatio, 1.5), shadowMapSize: 1024, ao: false, fxaa: false, cloudOctaves: 2 }
+    : { pixelRatio: Math.min(window.devicePixelRatio, 2), shadowMapSize: 2048, ao: true, fxaa: true, cloudOctaves: 4 }
 
 
 export class Experience {
@@ -43,7 +47,7 @@ export class Experience {
     // controls = new OrbitControls(this.camera, this.renderer.domElement);
    
     player = new Player();
-    input = new Input();
+    // input = new Input();
     map = new Map();
 
     started = false
@@ -212,7 +216,8 @@ export class Experience {
         const dir = normalize(positionLocal.add(vec3(0, skyHorizon, 0)))
         const sky = mix(color('#bfe3ff'), color('#2f7fe0'), smoothstep(-0.1, 0.6, dir.y))
 
-        const noise = mx_fractal_noise_float(dir.mul(cloudScale).add(vec3(0, time.mul(0.02), time.mul(0.04))), 4, 2.0, 0.5)
+        const noise = mx_fractal_noise_float(dir.mul(cloudScale).add(vec3(0, time.mul(0.02), time.mul(0.04))), QUALITY.cloudOctaves, 2.0, 0.5)
+        // const noise = mx_fractal_noise_float(dir.mul(cloudScale).add(vec3(0, time.mul(0.02), time.mul(0.04))), 4, 2.0, 0.5)
         const clouds = smoothstep(0.05, 0.45, noise).mul(smoothstep(0.0, 0.25, dir.y))
 
         const skyMaterial = new THREE.MeshBasicNodeMaterial({ side: THREE.BackSide, depthWrite: false, fog: false })
@@ -230,7 +235,7 @@ export class Experience {
         // post pro
 
         this.renderPipeline = new THREE.RenderPipeline(this.renderer)
-
+        
         const scenePass = pass(this.scene, this.camera, { samples: 0 })
         const sceneColor = scenePass.getTextureNode('output')
 
@@ -315,8 +320,12 @@ export class Experience {
         this.setupGUI(aoPass, bloomPass)
 
         this.renderPipeline.outputColorTransform = false
-        this.renderPipeline.outputNode = fxaa(renderOutput(caPass))
 
+
+        const finalOutput = renderOutput(caPass)
+        this.renderPipeline.outputNode = QUALITY.fxaa ? fxaa(finalOutput) : finalOutput
+
+        // this.renderPipeline.outputNode = fxaa(renderOutput(caPass))
         // this.renderPipeline.outputNode = vec4(col, 1)
 
         await this.warmup()
