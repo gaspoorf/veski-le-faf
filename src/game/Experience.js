@@ -24,13 +24,8 @@ const skyHorizon = uniform(0.7)
 const cloudScale = uniform(4.77)
 
 
-// iPadOS se présente comme un Mac : on le repère par l'écran tactile
 const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)
 const isMobile = isIOS || /Android/i.test(navigator.userAgent)
-
-// const QUALITY = isMobile
-//     ? { pixelRatio: Math.min(window.devicePixelRatio, 1.5), shadowMapSize: 1024, ao: false, fxaa: false }
-//     : { pixelRatio: Math.min(window.devicePixelRatio, 2), shadowMapSize: 2048, ao: true, fxaa: true }
 
 const QUALITY = isMobile
     ? { pixelRatio: Math.min(window.devicePixelRatio, 1.5), shadowMapSize: 1024, ao: false, fxaa: false, cloudOctaves: 2 }

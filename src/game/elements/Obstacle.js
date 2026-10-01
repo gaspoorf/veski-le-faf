@@ -10,8 +10,8 @@ const TWO_PI = Math.PI * 2
 
 const SPAWN_ANGLE = -0.85 * Math.PI
 const DESPAWN_ANGLE = 0.6 * Math.PI
-const HIT_ANGLE = 0.1
-const HIT_LANE_DISTANCE = 0.15
+const HIT_ANGLE = 0.05
+const HIT_LANE_DISTANCE = 0.08
 
 
 const OBSTACLE_HEIGHT = 0.15
