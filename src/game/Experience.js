@@ -1,6 +1,6 @@
 import * as THREE from 'three/webgpu'
 import { color, mix, normalView, time, sin, smoothstep, vec2, vec3, positionLocal, normalize, mx_fractal_noise_float, uniform, cos, pass, screenUV, length, float, vec4, mrt, output, sample, saturation, packNormalToRGB, unpackRGBToNormal, atan, floor, fract, abs, hash, screenSize, step, luminance, renderOutput  } from 'three/tsl'
-import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
+// import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
 // import { Inspector } from 'three/addons/inspector/Inspector.js'
 import { Player } from './elements/Player.js'
 import { Map } from './elements/Map.js'
@@ -24,13 +24,23 @@ const skyHorizon = uniform(0.7)
 const cloudScale = uniform(4.77)
 
 
+// iPadOS se présente comme un Mac : on le repère par l'écran tactile
+const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)
+const isMobile = isIOS || /Android/i.test(navigator.userAgent)
+
+const QUALITY = isMobile
+    ? { pixelRatio: 1, shadowMapSize: 1024, ao: false }
+    : { pixelRatio: Math.min(window.devicePixelRatio, 2), shadowMapSize: 2048, ao: true }
+
+
 export class Experience {
     loader = new Loader()
 
     scene = new THREE.Scene();
     camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 100);
-    renderer = new THREE.WebGPURenderer({ antialias: true });
-    controls = new OrbitControls(this.camera, this.renderer.domElement);
+    // renderer = new THREE.WebGPURenderer({ antialias: true });
+    renderer = new THREE.WebGPURenderer({ antialias: false, forceWebGL: isIOS });
+    // controls = new OrbitControls(this.camera, this.renderer.domElement);
    
     player = new Player();
     input = new Input();
@@ -52,19 +62,21 @@ export class Experience {
         // this.camera.lookAt(20, 20, 0);
 
         // this.renderer = renderer;
-        this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        // this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        this.renderer.setPixelRatio(QUALITY.pixelRatio)
         this.renderer.setSize(window.innerWidth, window.innerHeight);
         this.renderer.toneMapping = THREE.NeutralToneMapping
         this.renderer.toneMappingExposure = 1.1
         this.renderer.shadowMap.enabled = true
-        this.renderer.shadowMap.type = THREE.VSMShadowMap
+        // this.renderer.shadowMap.type = THREE.VSMShadowMap
+        this.renderer.shadowMap.type = isMobile ? THREE.PCFSoftShadowMap : THREE.VSMShadowMap
 
         // this.renderer.inspector = new Inspector();
         document.body.appendChild(this.renderer.domElement);
         
         
         // this.controls = controls
-        this.controls.enableDamping = true;
+        // this.controls.enableDamping = true;
 
         this.timer = new THREE.Timer();
        
@@ -91,7 +103,8 @@ export class Experience {
             this.camera.aspect = window.innerWidth / window.innerHeight
             this.camera.updateProjectionMatrix()
 
-            this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
+            // this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
+            this.renderer.setPixelRatio(QUALITY.pixelRatio)
             this.renderer.setSize(window.innerWidth, window.innerHeight)
         })
 
@@ -161,7 +174,8 @@ export class Experience {
         const sun = new THREE.DirectionalLight('#fff1d6', 2.5)
         sun.position.set(2, 4, 3)
         sun.castShadow = true
-        sun.shadow.mapSize.set(2048, 2048)
+        // sun.shadow.mapSize.set(2048, 2048)
+        sun.shadow.mapSize.set(QUALITY.shadowMapSize, QUALITY.shadowMapSize)
         sun.shadow.camera.left = sun.shadow.camera.bottom = -2.5
         sun.shadow.camera.right = sun.shadow.camera.top = 2.5
         sun.shadow.camera.near = 0.5
@@ -218,23 +232,25 @@ export class Experience {
         this.renderPipeline = new THREE.RenderPipeline(this.renderer)
 
         const scenePass = pass(this.scene, this.camera, { samples: 0 })
-        
-        scenePass.setMRT(mrt({ output, normal: packNormalToRGB(normalView) }))
-
         const sceneColor = scenePass.getTextureNode('output')
-        const sceneDepth = scenePass.getTextureNode('depth')
-        const normalTex = scenePass.getTextureNode('normal')
 
-        const sceneNormal = sample((uv) => unpackRGBToNormal(normalTex.sample(uv)))
+        let col = sceneColor.rgb
+        let aoPass = null
+
+        // ao pass sur pc seulement 
+        if (QUALITY.ao) {
+            scenePass.setMRT(mrt({ output, normal: packNormalToRGB(normalView) }))
+            const sceneDepth = scenePass.getTextureNode('depth')
+            const normalTex = scenePass.getTextureNode('normal')
+            const sceneNormal = sample((uv) => unpackRGBToNormal(normalTex.sample(uv)))
+
+            aoPass = ao(sceneDepth, sceneNormal, this.camera)
+            aoPass.resolutionScale = 0.5
+            col = col.mul(mix(float(1), aoPass.getTextureNode().r, this.params.aoIntensity))
+        }
 
 
-
-        const aoPass = ao(sceneDepth, sceneNormal, this.camera)
-        aoPass.resolutionScale = 0.5
-        const aoValue = aoPass.getTextureNode().r
-
-        let col = sceneColor.rgb.mul(mix(float(1), aoValue, this.params.aoIntensity))
-
+       
 
         const bloomPass = bloom(sceneColor, 0.5, 0.5, 0.7)
         col = col.add(bloomPass.rgb)
@@ -339,10 +355,12 @@ export class Experience {
     setupGUI(aoPass, bloomPass) {
         const gui = new GUI({ title: 'Réglages' })
 
-        const aoFolder = gui.addFolder('ao')
-        aoFolder.add(this.params.aoIntensity, 'value', 0, 1, 0.01).name('force')
-        aoFolder.add(aoPass.radius, 'value', 0.01, 1, 0.01).name('Rayon')
-        aoFolder.add(aoPass.thickness, 'value', 0.01, 2, 0.01).name('Épaisseur')
+        if (aoPass) {
+            const aoFolder = gui.addFolder('ao')
+            aoFolder.add(this.params.aoIntensity, 'value', 0, 1, 0.01).name('force')
+            aoFolder.add(aoPass.radius, 'value', 0.01, 1, 0.01).name('Rayon')
+            aoFolder.add(aoPass.thickness, 'value', 0.01, 2, 0.01).name('Épaisseur')
+        }
 
         const bloomFolder = gui.addFolder('bloom')
         bloomFolder.add(bloomPass.strength, 'value', 0, 3, 0.01).name('force')

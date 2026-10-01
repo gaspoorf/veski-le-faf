@@ -273,7 +273,7 @@ canvas {
 
 @media (max-width: 768px) {
   .game-over-container{
-    width: calc(100% - 9rem);
+    width: calc(100% - 8rem);
   }
 }
 
@@ -346,7 +346,7 @@ canvas {
 
 @media (max-width: 768px) {
   .lines-score, .lines-coins{
-    font-size: 1.1rem;
+    font-size: 1rem;
     text-align: left;
   }
 }
