@@ -16,7 +16,7 @@ const ambient = new Howl({
 const lobby = new Howl({
     src: ["/audio/lobby.ogg"],
     loop: true,
-    volume: 0.1,
+    volume: 0.35,
     preload: true,
 });
 
